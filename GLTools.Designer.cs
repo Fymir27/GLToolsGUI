@@ -29,7 +29,6 @@ namespace GLToolsGUI
         /// </summary>
         private void InitializeComponent()
         {
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.openKTEX = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.savePNG = new System.Windows.Forms.Button();
@@ -43,11 +42,6 @@ namespace GLToolsGUI
             ((System.ComponentModel.ISupportInitialize)(this.loadedKTEXPreview)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.loadedImagePreview)).BeginInit();
             this.SuspendLayout();
-            // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // openKTEX
             // 
@@ -67,7 +61,6 @@ namespace GLToolsGUI
             this.label1.Size = new System.Drawing.Size(63, 13);
             this.label1.TabIndex = 4;
             this.label1.Text = "Klei Texture";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // savePNG
             // 
@@ -86,7 +79,6 @@ namespace GLToolsGUI
             this.loadedKTEXPreview.Size = new System.Drawing.Size(381, 401);
             this.loadedKTEXPreview.TabIndex = 6;
             this.loadedKTEXPreview.TabStop = false;
-            this.loadedKTEXPreview.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // saveKTEX
             // 
@@ -127,7 +119,6 @@ namespace GLToolsGUI
             this.kleiMagicBytesPreview.TabIndex = 10;
             this.kleiMagicBytesPreview.Text = "0x69 0x69 0x69 0x69 0x69";
             this.kleiMagicBytesPreview.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.kleiMagicBytesPreview.Click += new System.EventHandler(this.kleiMagicBytesPreview_Click);
             // 
             // loadedImagePreview
             // 
@@ -173,7 +164,6 @@ namespace GLToolsGUI
         }
 
         #endregion
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Button openKTEX;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button savePNG;

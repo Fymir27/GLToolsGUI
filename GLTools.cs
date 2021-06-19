@@ -14,29 +14,41 @@ namespace GLToolsGUI
 {
     public partial class GLTools : Form
     {
-        private string[] allowedImageTypes = new[]
-        {
-            "png",
-            "jpg",
-            "jpeg",
-            "gif"
-        };
+        private readonly string imageTypeFileDialogDescription;
+        private readonly string ktexTypeFileDialogDescription;
 
         MagickImage currentlyLoadedImage;
         MagickImage currentlyLoadedKTEX;
+
+        // Klei's Texture files are special .dds files with dxt5 compression
+        // They usually start with "KTEX" followed by 5 more "magic" bytes
+        // that I don't know the meaning of but are probably necessary
         const int magicBytesCount = 5;
         byte[] kleiMagicBytes = null;
-        byte[] kleiFileMagic = { (byte)'K', (byte)'T', (byte)'E', (byte)'X' };
+        readonly byte[] kleiFileMagic = { (byte)'K', (byte)'T', (byte)'E', (byte)'X' };
+        const string compression = "dxt5";
 
         public GLTools()
         {
-            InitializeComponent();
+            InitializeComponent();            
+            imageTypeFileDialogDescription = $"PNG Image (*.png)|*.png";
+            ktexTypeFileDialogDescription = "Klei Texture(*.tex)|*.tex";
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             kleiMagicBytesPreview.Text = "No original texture loaded";
-        }       
+        }
+
+        private string BytesToASCIIString(byte[] bytes)
+        {
+            return string.Join("", bytes.Select(b => (char)b));
+        }
+
+        private string BytesToHexString(byte[] bytes)
+        {
+            return string.Join(" ", bytes.Select(b => $"x{b,2:X2}"));
+        }
 
         private void SetLoadedKTEX(MagickImage image)
         {
@@ -54,57 +66,48 @@ namespace GLToolsGUI
             loadedImagePreview.Image = Image.FromStream(new MemoryStream(previewImage.ToByteArray(MagickFormat.Png)));
         }
 
-        private string bytesToString(byte[] bytes)
-        {
-            return bytes.Aggregate("", (carry, currentByte) => carry += (char)currentByte);
-        }
-
         private void OpenKTEX_Click(object sender, EventArgs e)
         {
             using (var dialog = new OpenFileDialog())
             {
-                var fileTypeString = string.Join(";", allowedImageTypes.Select(type => $"*.{type}"));
                 dialog.InitialDirectory = Directory.GetCurrentDirectory();
-                dialog.Filter = "Klei Texture (*.tex)|*.tex";                
+                dialog.Filter = ktexTypeFileDialogDescription;                
                 dialog.RestoreDirectory = true;
+
                 if(dialog.ShowDialog() != DialogResult.OK)
                 {
                     errorText.Text = "Error selecting file";
                     return;
                 }
+                var fs = dialog.OpenFile();               
 
-                var fs = dialog.OpenFile();
-                int magicLength = 4;
-                var magic = new byte[magicLength];                
-                if(fs.Read(magic, 0, magicLength) < magicLength)
+                int expectedFileMagicLength = 4;
+                var fileMagicBytes = new byte[expectedFileMagicLength];                
+                if(fs.Read(fileMagicBytes, 0, expectedFileMagicLength) < expectedFileMagicLength)
                 {
                     errorText.Text = "Failed to read magic!";
                     return;
                 }
+                                
+                var fileMagic = BytesToASCIIString(fileMagicBytes);
 
-                var magicString = bytesToString(magic);
-
-                if(magicString == "KTEX")
+                if(fileMagic == "KTEX")
                 {                    
                     kleiMagicBytes = new byte[magicBytesCount];
                     if (fs.Read(kleiMagicBytes, 0, magicBytesCount) < magicBytesCount)
                     {
-                        errorText.Text = "Failed to read KLEI disrcriminator!";
+                        errorText.Text = "Failed to read KLEI magic bytes!";
                         return;
                     }
-                    kleiMagicBytesPreview.Text = "";
-                    foreach (var b in kleiMagicBytes)
-                    {
-                        kleiMagicBytesPreview.Text += (int)b;
-                    }
+                    kleiMagicBytesPreview.Text = BytesToHexString(kleiMagicBytes);                    
                 } 
-                else if(magicString == "DDS")
-                {
-                    fs.Position = 0;
+                else if(fileMagic.StartsWith("DDS"))
+                {                    
+                    fs.Position = 0; // no special klei magic, just a simple .dds file
                 } 
                 else
                 {
-                    errorText.Text = "Invalid file magic";
+                    errorText.Text = "Invalid file format";
                     return;
                 }
 
@@ -115,11 +118,6 @@ namespace GLToolsGUI
 
                 SetLoadedKTEX(new MagickImage(ddsImageBytes));
             }
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void SavePNG_Click(object sender, EventArgs e)
@@ -133,7 +131,7 @@ namespace GLToolsGUI
             using (var dialog = new SaveFileDialog())
             {
                 dialog.InitialDirectory = Directory.GetCurrentDirectory();
-                dialog.Filter = "PNG Image (*.png)|*.png";
+                dialog.Filter = imageTypeFileDialogDescription;
                 dialog.RestoreDirectory = true;
 
                 if (dialog.ShowDialog() != DialogResult.OK)
@@ -146,19 +144,14 @@ namespace GLToolsGUI
             }   
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void openImage_Click(object sender, EventArgs e)
         {
             using (var dialog = new OpenFileDialog())
-            {
-                var fileTypeString = string.Join(";", allowedImageTypes.Select(type => $"*.{type}"));
+            {               
                 dialog.InitialDirectory = Directory.GetCurrentDirectory();
-                dialog.Filter = "Image (*.png,*.jpeg)|*.png;*jpeg";
+                dialog.Filter = imageTypeFileDialogDescription;
                 dialog.RestoreDirectory = true;
+
                 if (dialog.ShowDialog() != DialogResult.OK)
                 {
                     errorText.Text = "Error selecting file";
@@ -167,11 +160,6 @@ namespace GLToolsGUI
 
                 SetLoadedImage(new MagickImage(dialog.FileName));
             }
-        }
-
-        private void kleiMagicBytesPreview_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void saveKTEX_click(object sender, EventArgs e)
@@ -184,14 +172,14 @@ namespace GLToolsGUI
 
             if (kleiMagicBytes == null)
             {
-                errorText.Text = "Please load original texture first";
+                errorText.Text = "Please load original texture first!";
                 return;
             }
 
             using (var dialog = new SaveFileDialog())
             {
                 dialog.InitialDirectory = Directory.GetCurrentDirectory();
-                dialog.Filter = "Klei Texture (*.tex)|*.tex";
+                dialog.Filter = ktexTypeFileDialogDescription;
                 dialog.RestoreDirectory = true;
 
                 if (dialog.ShowDialog() != DialogResult.OK)
@@ -200,22 +188,20 @@ namespace GLToolsGUI
                     return;
                 }
 
+                // convert to dds
                 currentlyLoadedImage.Format = MagickFormat.Dds;
-                currentlyLoadedImage.Settings.SetDefine(MagickFormat.Dds, "compression", "dxt5");
+                currentlyLoadedImage.Settings.SetDefine(MagickFormat.Dds, "compression", compression);
                 var rawDDS = currentlyLoadedImage.ToByteArray();
 
                 var outputFile = File.OpenWrite(dialog.FileName);
 
+                // put everything back in its place
+                // "KTEX" + 5 magic bytes from original klei texture + rest of DDS file
                 outputFile.Write(kleiFileMagic, 0, kleiFileMagic.Length);
                 outputFile.Write(kleiMagicBytes, 0, magicBytesCount);
                 outputFile.Write(rawDDS, 0, rawDDS.Length);
                 outputFile.Close();
             }
-        }
-
-        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
-        {
-
         }
     }
 }
