@@ -55,16 +55,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GLTools.cs">
+    <Compile Include="Forms\BuildConverter.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GLTools.Designer.cs">
-      <DependentUpon>GLTools.cs</DependentUpon>
+    <Compile Include="Forms\BuildConverter.Designer.cs">
+      <DependentUpon>BuildConverter.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\TextureConverter.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\TextureConverter.Designer.cs">
+      <DependentUpon>TextureConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Model\GLBuild.cs" />
+    <Compile Include="Model\GLFrame.cs" />
+    <Compile Include="Model\GLSymbol.cs" />
+    <Compile Include="Model\GLTexture.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="GLTools.resx">
-      <DependentUpon>GLTools.cs</DependentUpon>
+    <Compile Include="Utils\GLReader.cs" />
+    <EmbeddedResource Include="Forms\BuildConverter.resx">
+      <DependentUpon>BuildConverter.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\TextureConverter.resx">
+      <DependentUpon>TextureConverter.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

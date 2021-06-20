@@ -1,7 +1,7 @@
 ﻿
-namespace GLToolsGUI
+namespace GLToolsGUI.Forms
 {
-    partial class GLTools
+    partial class TextureConverter
     {
         /// <summary>
         /// Required designer variable.
@@ -39,8 +39,8 @@ namespace GLToolsGUI
             this.kleiMagicBytesPreview = new System.Windows.Forms.Label();
             this.loadedImagePreview = new System.Windows.Forms.PictureBox();
             this.errorText = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.loadedKTEXPreview)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.loadedImagePreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.loadedKTEXPreview)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize) (this.loadedImagePreview)).BeginInit();
             this.SuspendLayout();
             // 
             // openKTEX
@@ -153,14 +153,13 @@ namespace GLToolsGUI
             this.Controls.Add(this.savePNG);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.openKTEX);
-            this.Name = "GLTools";
+            this.Name = "TextureConverter";
             this.Text = "GLTools";
             this.Load += new System.EventHandler(this.Form1_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.loadedKTEXPreview)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.loadedImagePreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize) (this.loadedKTEXPreview)).EndInit();
+            ((System.ComponentModel.ISupportInitialize) (this.loadedImagePreview)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
