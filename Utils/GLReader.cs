@@ -1,12 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 
 namespace GLToolsGUI.Utils
 {
     public class GLReader : BinaryReader
     {
-        public GLReader(Stream input) : base(input)
+        public readonly string Path;
+        
+        public GLReader(FileStream input) : base(input)
         {
+            Path = input.Name;
         }
 
         public void Reset()
@@ -24,6 +28,11 @@ namespace GLToolsGUI.Utils
             return ReadString(ReadInt32());
         }
 
+        public string ReadBytePrefixedString()
+        {
+            return ReadString(ReadByte());
+        }
+
         public string ReadString(int length)
         {
             var sb = new StringBuilder();
@@ -38,6 +47,11 @@ namespace GLToolsGUI.Utils
         public float ReadFloat()
         {
             return ReadSingle();
+        }
+        
+        public static int RoundToInt(float f)
+        {
+            return (int)Math.Round(f);
         }
     }
 }

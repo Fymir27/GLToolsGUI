@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using GLToolsGUI.Model;
 using GLToolsGUI.Utils;
@@ -29,7 +30,7 @@ namespace GLToolsGUI.Forms
                 }
 
                 GLBuild build;
-                var buildFile = dialog.OpenFile(); // reader will dispose of file automatically
+                var buildFile = File.OpenRead(dialog.FileName); // reader will dispose of file automatically
                 using (var reader = new GLReader(buildFile))
                 {
                     try

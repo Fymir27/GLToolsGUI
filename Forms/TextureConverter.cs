@@ -35,7 +35,8 @@ namespace GLToolsGUI.Forms
                 var timestamp = DateTime.Now.ToString(DateTimeFormatInfo.InvariantInfo);
                 string log =
                     $"[{timestamp}] {message}\n" +
-                    $"[{timestamp}] {exception.Message}\n";
+                    $"[{timestamp}] {exception.Message}\n" +
+                    $"{exception.StackTrace}\n";
                 File.AppendAllText("log.txt", log);
             }
 
@@ -93,7 +94,7 @@ namespace GLToolsGUI.Forms
                     return;
                 }
 
-                var textureFile = dialog.OpenFile();
+                var textureFile = File.OpenRead(dialog.FileName); // reader will dispose of file automatically
                 using (var reader = new GLReader(textureFile))
                 {
                     try
@@ -184,6 +185,7 @@ namespace GLToolsGUI.Forms
                 {
                     try
                     {
+                        _currentlyLoadedTexture.Image = _currentlyLoadedImage;
                         _currentlyLoadedTexture.Write(outputFile);
                         Success("Successfully saved to: " + dialog.FileName);
                     }
