@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -21,45 +20,13 @@ namespace GLToolsGUI.Forms
         public TextureConverter()
         {
             InitializeComponent();
+            Popup.SetErrorLabel(errorText);
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             kleiMagicBytesPreview.Text = "No original texture loaded";
         }
-
-        private void Error(string message, bool popup = true, Exception exception = null)
-        {
-            if (exception != null)
-            {
-                var timestamp = DateTime.Now.ToString(DateTimeFormatInfo.InvariantInfo);
-                string log =
-                    $"[{timestamp}] {message}\n" +
-                    $"[{timestamp}] {exception.Message}\n" +
-                    $"{exception.StackTrace}\n";
-                File.AppendAllText("log.txt", log);
-            }
-
-            if (popup)
-            {
-                MessageBox.Show(message, "Error");
-            }
-
-            errorText.Text = message;
-        }
-        
-        private void Success(string message)
-        {
-            MessageBox.Show(message, "Success");
-            errorText.Text = "";
-        }
-
-        /*
-        private string BytesToASCIIString(byte[] bytes)
-        {
-            return string.Join("", bytes.Select(b => (char)b));
-        }
-        */
 
         private static string BytesToHexString(byte[] bytes)
         {
@@ -105,7 +72,7 @@ namespace GLToolsGUI.Forms
                     }
                     catch (Exception exception)
                     {
-                        Error("Error loading texture: " + dialog.FileName, true, exception);
+                        Popup.Error("Error loading texture: " + dialog.FileName, true, exception);
                     }
                 }
             }
@@ -115,7 +82,7 @@ namespace GLToolsGUI.Forms
         {
             if (_currentlyLoadedTexture == null)
             {
-                Error("No texture loaded");
+                Popup.Error("No texture loaded");
                 return;
             }
 
@@ -132,11 +99,11 @@ namespace GLToolsGUI.Forms
                 try
                 {
                     _currentlyLoadedTexture.Image.Write(dialog.FileName);
-                    Success("Successfully saved to: " + dialog.FileName);
+                    Popup.Success("Successfully saved to: " + dialog.FileName);
                 }
                 catch (Exception exception)
                 {
-                    Error("Error saving Image: " + dialog.FileName, true, exception);
+                    Popup.Error("Error saving Image: " + dialog.FileName, true, exception);
                 }
             }
         }
@@ -161,13 +128,13 @@ namespace GLToolsGUI.Forms
         {
             if (_currentlyLoadedImage == null)
             {
-                Error("No image loaded");
+                Popup.Error("No image loaded");
                 return;
             }
 
             if (_currentlyLoadedTexture == null)
             {
-                Error("Please load original texture first!");
+                Popup.Error("Please load original texture first!");
                 return;
             }
 
@@ -187,11 +154,11 @@ namespace GLToolsGUI.Forms
                     {
                         _currentlyLoadedTexture.Image = _currentlyLoadedImage;
                         _currentlyLoadedTexture.Write(outputFile);
-                        Success("Successfully saved to: " + dialog.FileName);
+                        Popup.Success("Successfully saved to: " + dialog.FileName);
                     }
                     catch (Exception exception)
                     {
-                        Error("Error saving texture: " + dialog.FileName, true, exception);
+                        Popup.Error("Error saving texture: " + dialog.FileName, true, exception);
                     }
                 }
             }

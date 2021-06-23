@@ -53,13 +53,15 @@ namespace GLToolsGUI.Model
         /// <exception cref="MagickException">if writing the image fails</exception>
         public void Write(string path)
         {
-            if (!Directory.Exists(path))
+            if (!File.Exists(path))
             {
                 throw new ArgumentException("Invalid path: " + path);
             }
 
-            var outputFile = File.OpenWrite(path);
-            Write(outputFile);
+            using (var outputFile = File.OpenWrite(path))
+            {
+                Write(outputFile);    
+            }
         }
 
         public void Write(Stream outputStream)
