@@ -17,7 +17,7 @@ namespace GLToolsGUI
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TextureConverter());
+            Application.Run(new NavigationForm());
         }
     }
 }

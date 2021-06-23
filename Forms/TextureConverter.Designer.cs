@@ -76,13 +76,13 @@ namespace GLToolsGUI.Forms
             // 
             this.loadedKTEXPreview.Location = new System.Drawing.Point(12, 37);
             this.loadedKTEXPreview.Name = "loadedKTEXPreview";
-            this.loadedKTEXPreview.Size = new System.Drawing.Size(381, 401);
+            this.loadedKTEXPreview.Size = new System.Drawing.Size(615, 619);
             this.loadedKTEXPreview.TabIndex = 6;
             this.loadedKTEXPreview.TabStop = false;
             // 
             // saveKTEX
             // 
-            this.saveKTEX.Location = new System.Drawing.Point(658, 8);
+            this.saveKTEX.Location = new System.Drawing.Point(1122, 8);
             this.saveKTEX.Name = "saveKTEX";
             this.saveKTEX.Size = new System.Drawing.Size(130, 23);
             this.saveKTEX.TabIndex = 9;
@@ -93,7 +93,7 @@ namespace GLToolsGUI.Forms
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(489, 13);
+            this.label2.Location = new System.Drawing.Point(953, 13);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(82, 13);
             this.label2.TabIndex = 8;
@@ -101,7 +101,7 @@ namespace GLToolsGUI.Forms
             // 
             // openImage
             // 
-            this.openImage.Location = new System.Drawing.Point(577, 8);
+            this.openImage.Location = new System.Drawing.Point(1041, 8);
             this.openImage.Name = "openImage";
             this.openImage.Size = new System.Drawing.Size(75, 23);
             this.openImage.TabIndex = 7;
@@ -122,9 +122,9 @@ namespace GLToolsGUI.Forms
             // 
             // loadedImagePreview
             // 
-            this.loadedImagePreview.Location = new System.Drawing.Point(407, 37);
+            this.loadedImagePreview.Location = new System.Drawing.Point(637, 37);
             this.loadedImagePreview.Name = "loadedImagePreview";
-            this.loadedImagePreview.Size = new System.Drawing.Size(381, 401);
+            this.loadedImagePreview.Size = new System.Drawing.Size(615, 619);
             this.loadedImagePreview.TabIndex = 11;
             this.loadedImagePreview.TabStop = false;
             // 
@@ -132,17 +132,17 @@ namespace GLToolsGUI.Forms
             // 
             this.errorText.AutoSize = true;
             this.errorText.ForeColor = System.Drawing.Color.Red;
-            this.errorText.Location = new System.Drawing.Point(12, 441);
+            this.errorText.Location = new System.Drawing.Point(12, 659);
             this.errorText.Name = "errorText";
             this.errorText.Size = new System.Drawing.Size(74, 13);
             this.errorText.TabIndex = 12;
             this.errorText.Text = "No Errors (yet)";
             // 
-            // GLTools
+            // TextureConverter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 460);
+            this.ClientSize = new System.Drawing.Size(1264, 681);
             this.Controls.Add(this.errorText);
             this.Controls.Add(this.loadedImagePreview);
             this.Controls.Add(this.kleiMagicBytesPreview);

@@ -42,8 +42,11 @@
     <Reference Include="Magick.NET.Core, Version=7.0.1.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <HintPath>packages\Magick.NET.Core.7.0.1\lib\net40\Magick.NET.Core.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +56,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Forms\BuildConverter.cs">
@@ -60,6 +64,12 @@
     </Compile>
     <Compile Include="Forms\BuildConverter.Designer.cs">
       <DependentUpon>BuildConverter.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\NavigationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\NavigationForm.Designer.cs">
+      <DependentUpon>NavigationForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\PlaxConverter.cs">
       <SubType>Form</SubType>
@@ -86,6 +96,9 @@
     <Compile Include="Utils\Popup.cs" />
     <EmbeddedResource Include="Forms\BuildConverter.resx">
       <DependentUpon>BuildConverter.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\NavigationForm.resx">
+      <DependentUpon>NavigationForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\PlaxConverter.resx">
       <DependentUpon>PlaxConverter.cs</DependentUpon>

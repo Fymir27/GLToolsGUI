@@ -31,7 +31,6 @@ namespace GLToolsGUI.Forms
         {
             this.openBuild = new System.Windows.Forms.Button();
             this.buildName = new System.Windows.Forms.Label();
-            this.panel1 = new System.Windows.Forms.Panel();
             this.SuspendLayout();
             // 
             // openBuild
@@ -54,27 +53,17 @@ namespace GLToolsGUI.Forms
             this.buildName.Text = "No build loaded";
             this.buildName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // panel1
-            // 
-            this.panel1.Location = new System.Drawing.Point(258, 186);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(200, 105);
-            this.panel1.TabIndex = 2;
-            // 
             // BuildConverter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.panel1);
             this.Controls.Add(this.buildName);
             this.Controls.Add(this.openBuild);
             this.Name = "BuildConverter";
             this.Text = "KleiBuild";
             this.ResumeLayout(false);
         }
-
-        private System.Windows.Forms.Panel panel1;
 
         private System.Windows.Forms.Label buildName;
 
