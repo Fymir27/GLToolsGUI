@@ -61,18 +61,13 @@ namespace GLToolsGUI.Forms
             this.Controls.Add(this.buildName);
             this.Controls.Add(this.openBuild);
             this.Name = "BuildConverter";
-            this.Text = "KleiBuild";
+            this.Text = "Build Converter";
             this.ResumeLayout(false);
         }
 
         private System.Windows.Forms.Label buildName;
-
-        private System.Windows.Forms.Label label1;
-
         private System.Windows.Forms.Button openBuild;
 
         #endregion
-
-        private System.Windows.Forms.Button button1;
     }
 }

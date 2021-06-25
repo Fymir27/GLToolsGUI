@@ -154,7 +154,7 @@ namespace GLToolsGUI.Forms
             this.Controls.Add(this.label1);
             this.Controls.Add(this.openKTEX);
             this.Name = "TextureConverter";
-            this.Text = "GLTools";
+            this.Text = "Texture Converter";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize) (this.loadedKTEXPreview)).EndInit();
             ((System.ComponentModel.ISupportInitialize) (this.loadedImagePreview)).EndInit();

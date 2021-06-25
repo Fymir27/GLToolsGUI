@@ -30,7 +30,7 @@ namespace GLToolsGUI.Model
         
         private MagickGeometry[] SrcGeometries;
         private MagickGeometry[] DstGeometries;
-        /* Start of custom properties (not serialized) */
+        /* End of custom properties (not serialized) */
 
         private const string FileMagicPlax = "PLAX";
         private const char RootSeparator = '/';

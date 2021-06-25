@@ -158,7 +158,7 @@ namespace GLToolsGUI.Forms
             this.Controls.Add(this.label1);
             this.Controls.Add(this.openPLAX);
             this.Name = "PlaxConverter";
-            this.Text = "GLTools";
+            this.Text = "Plax Converter";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize) (this.loadedKTEXPreview)).EndInit();
             ((System.ComponentModel.ISupportInitialize) (this.loadedImagePreview)).EndInit();
@@ -171,11 +171,9 @@ namespace GLToolsGUI.Forms
         private System.Windows.Forms.Button savePLAX;
 
         #endregion
-        private System.Windows.Forms.Button openKTEX;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button savePNG;
         private System.Windows.Forms.PictureBox loadedKTEXPreview;
-        private System.Windows.Forms.Button saveKTEX;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button openImage;
         private System.Windows.Forms.Label plaxRootPreview;
