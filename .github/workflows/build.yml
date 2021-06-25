@@ -21,8 +21,14 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore -c Release    
-    - uses: actions/upload-artifact@v2
+    - name: Compress
+      run: Compress-Archive -Path 'bin/Release/net5.0-windows' -DestinationPath 'release.zip'
+    - uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        name: pre-release
-        path: bin/Release/net5.0-windows
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |          
+          release.zip
   
