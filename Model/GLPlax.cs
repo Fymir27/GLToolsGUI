@@ -42,12 +42,15 @@ namespace GLToolsGUI.Model
             RootCount = reader.ReadByte();
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
-            Root = reader.ReadBytePrefixedString().Remove(0, 5);
+            Root = reader.ReadBytePrefixedString();
             SpliceCount = reader.ReadInt32();
+            
+            // remove the "plax/" to allow for differently named folder (e.g.: "my_custom_plax")
+            string shallowRoot = Root.Remove(0, 5);
 
             // TODO: seems bad to hardcode folder levels like this
             // TODO: but it at least allows for referencing of textures from different folders (no idea if necessary)
-            RootPath = Path.GetFullPath(Path.Combine(reader.Path, "..", "..", Root));
+            RootPath = Path.GetFullPath(Path.Combine(reader.Path, "..", "..", shallowRoot));
             Console.WriteLine(RootPath);
             RootTexture = ReadRootTexture(RootPath);
             var rootImage = RootTexture.Image;
