@@ -11,6 +11,8 @@ namespace GLToolsGUI.Model
 {
     class GLPlax
     {
+       
+        /* Start of serialized Properties */
         public byte RootCount;
         public int Width;
         public int Height;
@@ -19,14 +21,16 @@ namespace GLToolsGUI.Model
 
         public GLNormalizedBox[] SrcBoxes;
         public GLNormalizedBox[] DstBoxes;
-
-        private MagickGeometry[] SrcGeometries;
-        private MagickGeometry[] DstGeometries;
+        /* End of serialized Properties */
         
-        public MagickImage Combined;
-
+        /* Start of custom properties (not serialized) */
         public string RootPath;
         public GLTexture RootTexture;
+        public MagickImage Combined;
+        
+        private MagickGeometry[] SrcGeometries;
+        private MagickGeometry[] DstGeometries;
+        /* Start of custom properties (not serialized) */
 
         private const string FileMagicPlax = "PLAX";
         private const char RootSeparator = '/';
@@ -75,6 +79,10 @@ namespace GLToolsGUI.Model
                 var dstGeometry = dstBox.GetScaledGeometry(Width, Height);
                 DstGeometries[i] = dstGeometry;
                 // Console.WriteLine($"{i} [{dstGeometry.X},{dstGeometry.Y}, {dstGeometry.Width + dstGeometry.X}, {dstGeometry.Height + dstGeometry.Y}]");
+
+                // snap offsets to tile-width/tile-height grid to avoid empty lines due to imprecision
+                dstGeometry.X = (int) Math.Round(dstGeometry.X / (float)dstGeometry.Width) * dstGeometry.Width;
+                dstGeometry.Y = (int) Math.Round(dstGeometry.Y / (float)dstGeometry.Height) * dstGeometry.Height;
 
                 var tile = rootImage.Clone(srcGeometry);
                 tile.Resize(dstGeometry.Width, dstGeometry.Height);
