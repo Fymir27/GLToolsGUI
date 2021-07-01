@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
@@ -16,11 +17,17 @@ namespace GLToolsGUI.Model
         public GLSymbol[] Symbols;
         public int RefCount;
         public Dictionary<int, string> Refs;
+        private const string FileMagicBuild = "BILD";
+        private const int VersionRequired = 10;
 
         public GLBuild(GLReader reader)
         {
             Magic = reader.ReadString(4);
             Version = reader.ReadInt32();
+            if (Magic != FileMagicBuild || Version < VersionRequired)
+            {
+                throw new FormatException("Invalid file format");
+            }
             SymbolCount = reader.ReadInt32();
             FrameCount = reader.ReadInt32();
             Root = reader.ReadString();

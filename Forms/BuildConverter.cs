@@ -43,6 +43,21 @@ namespace GLToolsGUI.Forms
                         return;
                     }
                 }
+                GLAnim anim;
+                string AnimPath = Path.GetFullPath(Path.Combine(dialog.FileName, "..", "anim.bin"));
+                var animFile = File.OpenRead(AnimPath);
+                using (var reader = new GLReader(animFile))
+                {
+                    try
+                    {
+                        anim = new GLAnim(reader);
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine("Error loading anim: " + exception.Message);
+                        return;
+                    }
+                }
 
                 buildName.Text = build.Root;
             }
