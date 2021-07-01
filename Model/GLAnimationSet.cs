@@ -4,7 +4,7 @@ using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
 {
-    class GLAnim
+    class GLAnimationSet
     {
         public string Magic;
         public int Version;
@@ -16,7 +16,7 @@ namespace GLToolsGUI.Model
         private const string FileMagicBuild = "ANIM";
         private const int VersionRequired = 7;
 
-        public GLAnim(GLReader reader)
+        public GLAnimationSet(GLReader reader)
         {
             Magic = reader.ReadString(4);
             Version = reader.ReadInt32();
@@ -28,6 +28,11 @@ namespace GLToolsGUI.Model
             FrameCount = reader.ReadInt32();
             AnimsCount = reader.ReadInt32();
 
+            //Anims have four "layers" of data to process
+            //For reference:
+            //GLAnimationSet -> GLAnimation -> GLAnimFrame -> GLElement
+            //TODO: create lists for these layers so they can be accessed
+            //when writing to scml later
             GLAnimations = new GLAnimation[AnimsCount];
             for (var i = 0; i < AnimsCount; i++)
             {
