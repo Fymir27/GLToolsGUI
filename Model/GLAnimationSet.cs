@@ -4,14 +4,16 @@ using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
 {
-    class GLAnimationSet
+    public class GLAnimationSet
     {
         public string Magic;
         public int Version;
         public int ElementCount;
         public int FrameCount;
         public int AnimsCount;
+        public int RefCount;
         public GLAnimation[] GLAnimations;
+        public Dictionary<int, string> Refs;
 
         private const string FileMagicBuild = "ANIM";
         private const int VersionRequired = 7;
@@ -37,6 +39,16 @@ namespace GLToolsGUI.Model
             for (var i = 0; i < AnimsCount; i++)
             {
                 GLAnimations[i] = new GLAnimation(reader);
+            }
+
+            RefCount = reader.ReadInt32();
+            System.Diagnostics.Debug.WriteLine(RefCount);
+            Refs = new Dictionary<int, string>();
+            for (var i = 0; i < RefCount; i++)
+            {
+                int hash = reader.ReadInt32();
+                string name = reader.ReadString();
+                Refs.Add(hash, name);
             }
         }
     }

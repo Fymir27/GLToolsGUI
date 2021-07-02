@@ -1,4 +1,6 @@
-﻿using GLToolsGUI.Utils;
+﻿using System;
+using System.Collections.Generic;
+using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
 {
@@ -29,9 +31,19 @@ namespace GLToolsGUI.Model
         public float Y;
         public float ScaleX;
         public float ScaleY;
-        public float Angle;
+        public double Angle;
         public float Spin;
-        public GLElement(GLReader reader)
+
+        private float det;
+        private bool IsFirst = true;
+        /*private Dictionary<string, int> Last = new Dictionary<string, int>
+        {
+            { "angle", 0 },
+            { "scale_x", 0 },
+            { "scale_y", 0 }
+        };*/
+
+        public GLElement(GLReader reader, Dictionary<string, double> Last)
         {
             Ref = reader.ReadInt32();
             Ndx = reader.ReadInt32();
@@ -51,6 +63,84 @@ namespace GLToolsGUI.Model
             mX = reader.ReadFloat();
             mY = reader.ReadFloat();
             index = reader.ReadFloat();
+
+            X = mX * 1;
+            Y = mY * -1;
+            ScaleX = (float)Math.Sqrt(Math.Pow(m1, 2) + Math.Pow(m2, 2));
+            ScaleY = (float)Math.Sqrt(Math.Pow(m3, 2) + Math.Pow(m4, 2));
+            det = m1 * m4 - m3 * m2;
+
+            if (det < 0)
+            {
+                if (IsFirst || Last["scale_x"] < Last["scale_y"])
+                {
+                    ScaleX *= -1;
+                    IsFirst = false;
+                }
+                else
+                {
+                    ScaleY *= -1;
+                }
+            }
+
+            if (Math.Abs(ScaleX) < 1e-3 || Math.Abs(ScaleY) < 1e-3)
+            {
+                Angle = Last["angle"];
+            }
+            else
+            {
+                //May have to revisit this but it seems to give values close enough
+                double SinApx = 0.5 * (m3 / ScaleY - m2 / ScaleX);
+                if (SinApx != 0 && SinApx != 1)
+                {
+                    if (SinApx > -0.5)
+                    {
+                        SinApx = -0;
+                    }
+                    else
+                    {
+                        SinApx = -1;
+                    }
+                }
+                double CosApx = 0.5 * (m1 / ScaleX + m4 / ScaleY);
+                if (CosApx != 0 && CosApx != 1)
+                {
+                    if (CosApx > -0.5)
+                    {
+                        CosApx = -0;
+                    }
+                    else
+                    {
+                        CosApx = -1;
+                    }
+                }
+                Angle = Math.Atan2(SinApx, CosApx);
+            }
+
+            if (Math.Abs(Angle - Last["angle"]) <= Math.PI)
+            {
+                Spin = -1;
+            }
+            else
+            {
+                Spin = 1;
+            }
+
+            if (Angle < Last["angle"])
+            {
+                Spin *= -1;
+            }
+
+            if (Angle < 0)
+            {
+               Angle = (float)(Angle + 2 * Math.PI);
+            }
+
+            Angle = (float)(Angle * 180 / Math.PI);
+
+            Last["angle"] = Angle;
+            Last["scale_x"] = ScaleX;
+            Last["scale_y"] = ScaleY;
         }
     }
 }

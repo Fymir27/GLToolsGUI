@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
@@ -11,6 +12,12 @@ namespace GLToolsGUI.Model
         public int Flag;
         public int FrameCount;
         public GLAnimFrame[] GLAnimFrames;
+        public Dictionary<string, double> Last = new Dictionary<string, double>
+        {
+            { "angle", 0 },
+            { "scale_x", 0 },
+            { "scale_y", 0 }
+        };
         public GLAnimation(GLReader reader)
         {
             Name1 = reader.ReadString();
@@ -22,7 +29,7 @@ namespace GLToolsGUI.Model
             GLAnimFrames = new GLAnimFrame[FrameCount];
             for (var i = 0; i < FrameCount; i++)
             {
-                GLAnimFrames[i] = new GLAnimFrame(reader);
+                GLAnimFrames[i] = new GLAnimFrame(reader, Last);
             }
         }
     }
