@@ -45,6 +45,17 @@ namespace GLToolsGUI.Forms
                 }
 
                 buildName.Text = build.Root;
+
+                string baseDir = Path.GetDirectoryName(dialog.FileName) ?? throw new Exception("Invalid path: " + dialog.FileName);
+                foreach ((string name, var frames) in build.Parts)
+                {
+                    string dirName = Path.Combine(baseDir, name);
+                    Directory.CreateDirectory(dirName);
+                    foreach ((string index, var image) in frames)
+                    {
+                        image.Write(Path.Combine(dirName, index + ".png"));
+                    }
+                }
             }
         }
     }

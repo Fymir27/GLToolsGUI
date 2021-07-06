@@ -59,7 +59,6 @@ namespace GLToolsGUI.Forms
             // 
             // btnConvertBuild
             // 
-            this.btnConvertBuild.Enabled = false;
             this.btnConvertBuild.Location = new System.Drawing.Point(188, 35);
             this.btnConvertBuild.Name = "btnConvertBuild";
             this.btnConvertBuild.Size = new System.Drawing.Size(75, 23);

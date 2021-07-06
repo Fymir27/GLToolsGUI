@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using GLToolsGUI.Utils;
+using ImageMagick;
 
 namespace GLToolsGUI.Model
 {
     public class GLBuild
     {
+        /* Serialized Properties */
         public string Magic;
         public int Version;
         public int SymbolCount;
@@ -16,8 +20,12 @@ namespace GLToolsGUI.Model
         public GLSymbol[] Symbols;
         public int RefCount;
         public Dictionary<int, string> Refs;
+        
+        /* Calculated/Loaded Properties */
+        public GLTexture RootTexture;
+        public Dictionary<string, Tuple<string, MagickImage>[]> Parts;
 
-        public GLBuild(GLReader reader)
+        public GLBuild(GLReader reader, bool loadTexture = true, bool disassembleTexture = true)
         {
             Magic = reader.ReadString(4);
             Version = reader.ReadInt32();
@@ -47,6 +55,19 @@ namespace GLToolsGUI.Model
                 string name = reader.ReadString();
                 Refs.Add(hash, name);
             }
+
+            if (!loadTexture)
+                return;
+
+            string directory = Path.GetDirectoryName(reader.Path) ?? throw new Exception("Invalid Path: " + reader.Path);
+            
+            // TODO: figure out a better way of loading texture instead of hardcoding
+            RootTexture = GLTexture.FromKTexFile(Path.Combine(directory, "atlas0.tex"));
+
+            if (!disassembleTexture)
+                return;
+
+            Parts = RootTexture.Disassemble(this);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GLToolsGUI.Utils;
@@ -44,6 +45,20 @@ namespace GLToolsGUI.Model
             Image.Settings.SetDefine(MagickFormat.Dds, "compression", Compression);
             MagicBytes = magicBytes;
         }
+        
+        public static GLTexture FromKTexFile(string path)
+        {
+            var textureFile = File.OpenRead(path); // reader will dispose of file automatically
+            using var reader = new GLReader(textureFile);
+            try
+            {
+                return new GLTexture(reader);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Failed to read Texture from file: " + path, exception);
+            }
+        }
 
         /// <summary>
         /// Writes Texture file to .tex format
@@ -71,6 +86,27 @@ namespace GLToolsGUI.Model
             outputStream.Write(Encoding.ASCII.GetBytes(FileMagicKtex), 0, FileMagicKtex.Length);
             outputStream.Write(MagicBytes, 0, MagicBytes.Length);
             Image.Write(outputStream);
+        }
+
+        public Dictionary<string, Tuple<string, MagickImage>[]> Disassemble(GLBuild build)
+        {
+            var parts = new Dictionary<string, Tuple<string, MagickImage>[]>();
+
+            foreach (var symbol in build.Symbols)
+            {
+                var frames = new List<Tuple<string, MagickImage>>();
+                foreach (var frame in symbol.Frames)
+                {
+                    var frameGeometry = frame.boundingBox.GetScaledGeometry(Image.Width, Image.Height);
+                    var frameImage = new MagickImage(Image);
+                    frameImage.Crop(frameGeometry);
+                    frames.Add(Tuple.Create(frame.Index.ToString(), frameImage));
+                }
+                string symbolName = build.Refs[symbol.Ref1];
+                parts.Add(symbolName, frames.ToArray());
+            }
+            
+            return parts;
         }
     }
 }
