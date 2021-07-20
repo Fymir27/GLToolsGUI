@@ -28,5 +28,13 @@ namespace GLToolsGUI.Utils
                 Write((byte)c);
             }
         }
+
+        public void WriteWithoutLength(string value)
+        {
+            foreach (char c in value)
+            {
+                Write((byte)c);
+            }
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace GLToolsGUI.Model
     {
         public MagickImage Image;
         public readonly byte[] MagicBytes;
+        public const int MagicByteCount = 5;
         private const string FileMagicKtex = "KTEX";
         private const string FileMagicDds = "DDS ";
         private const string Compression = "dxt5";
@@ -26,7 +27,7 @@ namespace GLToolsGUI.Model
             switch (fileMagic)
             {
                 case FileMagicKtex:
-                    MagicBytes = reader.ReadBytes(5);
+                    MagicBytes = reader.ReadBytes(MagicByteCount);
                     break;
                 case FileMagicDds:
                     MagicBytes = null;
@@ -41,6 +42,7 @@ namespace GLToolsGUI.Model
 
         public GLTexture(MagickImage image, byte[] magicBytes)
         {
+            ValidateMagicBytes(magicBytes);
             Image = new MagickImage(image) {Format = MagickFormat.Dds};
             Image.Settings.SetDefine(MagickFormat.Dds, "compression", Compression);
             MagicBytes = magicBytes;
@@ -73,10 +75,8 @@ namespace GLToolsGUI.Model
                 throw new ArgumentException("Invalid path: " + path);
             }
 
-            using (var outputFile = File.OpenWrite(path))
-            {
-                Write(outputFile);    
-            }
+            using var outputFile = File.OpenWrite(path);
+            Write(outputFile);
         }
 
         public void Write(Stream outputStream)
@@ -88,25 +88,17 @@ namespace GLToolsGUI.Model
             Image.Write(outputStream);
         }
 
-        public Dictionary<string, Tuple<string, MagickImage>[]> Disassemble(GLBuild build)
+        private static void ValidateMagicBytes(IReadOnlyCollection<byte> magicBytes)
         {
-            var parts = new Dictionary<string, Tuple<string, MagickImage>[]>();
-
-            foreach (var symbol in build.Symbols)
+            if (magicBytes == null)
             {
-                var frames = new List<Tuple<string, MagickImage>>();
-                foreach (var frame in symbol.Frames)
-                {
-                    var frameGeometry = frame.boundingBox.GetScaledGeometry(Image.Width, Image.Height);
-                    var frameImage = new MagickImage(Image);
-                    frameImage.Crop(frameGeometry);
-                    frames.Add(Tuple.Create(frame.Index.ToString(), frameImage));
-                }
-                string symbolName = build.Refs[symbol.Ref1];
-                parts.Add(symbolName, frames.ToArray());
+                throw new ArgumentException("GLTexture magicBytes cannot be null");
             }
-            
-            return parts;
+
+            if (magicBytes.Count != MagicByteCount)
+            {
+                throw new ArgumentException($"GLTexture invalid magicBytes length: {magicBytes.Count}! (Must be: {MagicByteCount})");
+            }
         }
     }
 }

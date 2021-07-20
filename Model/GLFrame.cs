@@ -11,7 +11,7 @@ namespace GLToolsGUI.Model
         public float OffsetY;
         public float Width;
         public float Height;
-        public GLNormalizedBox boundingBox;
+        public GLNormalizedBox BoundingBox;
         public float PivotX;
         public float PivotY;
 
@@ -24,9 +24,21 @@ namespace GLToolsGUI.Model
             OffsetY = reader.ReadFloat();
             Width = reader.ReadFloat();
             Height = reader.ReadFloat();
-            boundingBox = new GLNormalizedBox(reader);
+            BoundingBox = new GLNormalizedBox(reader);
             PivotX = 0 - (OffsetX - Width / 2) / Width;
             PivotY = 1 + (OffsetY - Height / 2) / Height;
+        }
+
+        public void Write(GLWriter writer)
+        {
+            writer.Write(Index);
+            writer.Write(Duration);
+            writer.Write(BuildIndex);
+            writer.Write(OffsetX);
+            writer.Write(OffsetY);
+            writer.Write(Width);
+            writer.Write(Height);
+            BoundingBox.Write(writer);
         }
     }
 }

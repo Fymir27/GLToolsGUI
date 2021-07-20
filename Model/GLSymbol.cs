@@ -22,5 +22,17 @@ namespace GLToolsGUI.Model
                 Frames[i] = new GLFrame(reader);
             }
         }
+
+        public void Write(GLWriter writer)
+        {
+            writer.Write(Ref1);
+            writer.Write(Ref2);
+            writer.Write(Flag);
+            writer.Write(FrameCount);
+            foreach (var frame in Frames)
+            {
+                frame.Write(writer);
+            }
+        }
     }
 }
