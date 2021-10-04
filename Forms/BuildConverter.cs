@@ -50,7 +50,7 @@ namespace GLToolsGUI.Forms
                 }
                 catch (Exception exception)
                 {
-                    Popup.Error("Error loading build", true, exception);
+                    Popup.Error("Error loading build!", true, dialog.FileName, exception);
                     return;
                 }
             }
@@ -87,7 +87,7 @@ namespace GLToolsGUI.Forms
             }
             catch (Exception exception)
             {
-                Popup.Error("Error saving build: " + dialog.FileName, true, exception);
+                Popup.Error("Error saving build!", true, dialog.FileName, exception);
             }
         }
 

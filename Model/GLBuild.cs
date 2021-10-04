@@ -62,7 +62,9 @@ namespace GLToolsGUI.Model
             string directory = Path.GetDirectoryName(reader.Path) ?? throw new Exception("Invalid Path: " + reader.Path);
             
             // TODO: figure out a better way of loading texture instead of hardcoding
-            RootTexture = GLTexture.FromKTexFile(Path.Combine(directory, "atlas0.tex"));
+            string rootTexturePath = GLReader.RequireFile(directory, "atlas0.tex");
+            
+            RootTexture = GLTexture.FromKTexFile(rootTexturePath);
 
             if (disassembleIntoParts)
             {

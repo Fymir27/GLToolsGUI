@@ -53,5 +53,20 @@ namespace GLToolsGUI.Utils
         {
             return (int)Math.Round(f);
         }
+        
+        /// <param name="directory"></param>
+        /// <param name="filename"></param>
+        /// <returns>full path of file</returns>
+        /// <exception cref="Exception">when filename doesn't exist</exception>
+        public static string RequireFile(string directory, string filename)
+        {
+            var fileInfo = new FileInfo(System.IO.Path.Combine(directory, filename));
+            if (!fileInfo.Exists)
+            {
+                throw new Exception($"File missing: {fileInfo.FullName}");
+            }
+
+            return fileInfo.FullName;
+        }
     }
 }

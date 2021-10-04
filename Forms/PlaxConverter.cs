@@ -66,7 +66,7 @@ namespace GLToolsGUI.Forms
                     }
                     catch (Exception exception)
                     {
-                        Popup.Error("Error loading plax: " + dialog.FileName, true, exception);
+                        Popup.Error("Error loading plax!", true, dialog.FileName, exception);
                     }
                 }
             }
@@ -97,7 +97,7 @@ namespace GLToolsGUI.Forms
                 }
                 catch (Exception exception)
                 {
-                    Popup.Error("Error saving Image: " + dialog.FileName, true, exception);
+                    Popup.Error("Error saving Image!", true, dialog.FileName, exception);
                 }
             }
         }
@@ -153,7 +153,7 @@ namespace GLToolsGUI.Forms
                     }
                     catch (Exception exception)
                     {
-                        Popup.Error("Error saving texture: " + dialog.FileName, true, exception);
+                        Popup.Error("Error saving texture!", true, dialog.FileName, exception);
                     }
                 }
             }
