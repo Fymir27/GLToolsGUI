@@ -126,8 +126,6 @@ namespace GLToolsGUI.Forms
 
         private System.Windows.Forms.Button saveFramesToFolders;
 
-        private System.Windows.Forms.Button button1;
-
         private System.Windows.Forms.PictureBox previewImage;
 
         private System.Windows.Forms.Button saveBuild;
