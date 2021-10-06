@@ -54,9 +54,9 @@ namespace GLToolsGUI.Model
 
             // TODO: seems bad to hardcode folder levels like this
             // TODO: but it at least allows for referencing of textures from different folders (no idea if necessary)
-            RootPath = Path.GetFullPath(Path.Combine(reader.Path, "..", "..", shallowRoot));
-            Console.WriteLine(RootPath);
-            RootTexture = ReadRootTexture(RootPath);
+            string directory = Path.Combine(reader.Path, "..", "..");
+            RootPath = GLReader.RequireFile(directory, shallowRoot);
+            RootTexture = GLTexture.FromKTexFile(RootPath);
             var rootImage = RootTexture.Image;
 
             SrcBoxes = new GLNormalizedBox[SpliceCount];

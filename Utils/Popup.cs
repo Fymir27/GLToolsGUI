@@ -10,7 +10,7 @@ namespace GLToolsGUI.Utils
         public const string LogfileName = "log.txt";
         private static Label _errorText;
         
-        public static void Error(string message, bool popup = true, Exception exception = null)
+        public static void Error(string message, bool popup = true, string title = "Error", Exception exception = null)
         {
             if (exception != null)
             {
@@ -19,12 +19,13 @@ namespace GLToolsGUI.Utils
                     $"[{timestamp}] {message}\n" +
                     $"[{timestamp}] {exception.Message}\n" +
                     $"{exception.StackTrace}\n";
-                File.AppendAllText("log.txt", log);
+                File.AppendAllText(LogfileName, log);
             }
 
             if (popup)
             {
-                MessageBox.Show(message, "Error");
+                string croppedTitle = "..." + title[Math.Max(0, title.Length - 50)..];
+                MessageBox.Show(message + "\n" + exception?.Message, croppedTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             if (_errorText == null)

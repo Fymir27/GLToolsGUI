@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GLToolsGUI.Utils;
@@ -15,6 +16,7 @@ namespace GLToolsGUI.Model
     {
         public MagickImage Image;
         public readonly byte[] MagicBytes;
+        public const int MagicByteCount = 5;
         private const string FileMagicKtex = "KTEX";
         private const string FileMagicDds = "DDS ";
         private const string Compression = "dxt5";
@@ -25,7 +27,7 @@ namespace GLToolsGUI.Model
             switch (fileMagic)
             {
                 case FileMagicKtex:
-                    MagicBytes = reader.ReadBytes(5);
+                    MagicBytes = reader.ReadBytes(MagicByteCount);
                     break;
                 case FileMagicDds:
                     MagicBytes = null;
@@ -40,9 +42,24 @@ namespace GLToolsGUI.Model
 
         public GLTexture(MagickImage image, byte[] magicBytes)
         {
+            ValidateMagicBytes(magicBytes);
             Image = new MagickImage(image) {Format = MagickFormat.Dds};
             Image.Settings.SetDefine(MagickFormat.Dds, "compression", Compression);
             MagicBytes = magicBytes;
+        }
+        
+        public static GLTexture FromKTexFile(string path)
+        {
+            var textureFile = File.OpenRead(path); // reader will dispose of file automatically
+            using var reader = new GLReader(textureFile);
+            try
+            {
+                return new GLTexture(reader);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception("Failed to read Texture from file: " + path, exception);
+            }
         }
 
         /// <summary>
@@ -58,10 +75,8 @@ namespace GLToolsGUI.Model
                 throw new ArgumentException("Invalid path: " + path);
             }
 
-            using (var outputFile = File.OpenWrite(path))
-            {
-                Write(outputFile);    
-            }
+            using var outputFile = File.OpenWrite(path);
+            Write(outputFile);
         }
 
         public void Write(Stream outputStream)
@@ -71,6 +86,19 @@ namespace GLToolsGUI.Model
             outputStream.Write(Encoding.ASCII.GetBytes(FileMagicKtex), 0, FileMagicKtex.Length);
             outputStream.Write(MagicBytes, 0, MagicBytes.Length);
             Image.Write(outputStream);
+        }
+
+        private static void ValidateMagicBytes(IReadOnlyCollection<byte> magicBytes)
+        {
+            if (magicBytes == null)
+            {
+                throw new ArgumentException("GLTexture magicBytes cannot be null");
+            }
+
+            if (magicBytes.Count != MagicByteCount)
+            {
+                throw new ArgumentException($"GLTexture invalid magicBytes length: {magicBytes.Count}! (Must be: {MagicByteCount})");
+            }
         }
     }
 }
