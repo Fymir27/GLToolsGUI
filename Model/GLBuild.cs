@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using GLToolsGUI.Utils;
 using ImageMagick;
@@ -174,13 +175,23 @@ namespace GLToolsGUI.Model
                 var frames = new Dictionary<string, MagickImage>();
                 foreach (var frame in symbol.Frames)
                 {
+                    if (frame.BuildIndex == -1)
+                    {
+                        continue;
+                    }
                     var frameGeometry = frame.BoundingBox.GetScaledGeometry(image.Width, image.Height);
                     var frameImage = new MagickImage(image);
                     frameImage.Crop(frameGeometry);
                     frames.Add(frame.Index.ToString(), frameImage);
                 }
                 string symbolName = Refs[symbol.Ref1];
-                Parts.Add(symbolName, frames);
+                Parts.TryAdd(symbolName, frames);
+                string symbolName2 = Refs[symbol.Ref2];
+                if (symbolName2.Length > 0)
+                {
+                    Parts.TryAdd(symbolName2, frames);                        
+                }
+                Debug.WriteLine($"Ref1: {symbolName}, Ref2: {symbolName2}");
             }
         }
 
