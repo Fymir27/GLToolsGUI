@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
@@ -26,6 +29,7 @@ namespace GLToolsGUI.Model
             {
                 throw new FormatException("Invalid file format");
             }
+
             ElementCount = reader.ReadInt32();
             FrameCount = reader.ReadInt32();
             AnimsCount = reader.ReadInt32();
@@ -50,6 +54,24 @@ namespace GLToolsGUI.Model
                 string name = reader.ReadString();
                 Refs.Add(hash, name);
             }
+        }
+
+        public XDocument ToXml()
+        {
+            var doc = new XDocument
+            (
+                new XDeclaration("1.0", "utf-8", "yes"),
+                new XElement
+                (
+                    "spriter_data",
+                    GLAnimations.Select
+                    (
+                        anim => new XElement("folder", new XAttribute("name", anim.Name1))
+                    )
+                )
+            );
+
+            return doc;
         }
     }
 }

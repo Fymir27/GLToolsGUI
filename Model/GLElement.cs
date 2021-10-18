@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
@@ -69,6 +71,10 @@ namespace GLToolsGUI.Model
             ScaleX = (float)Math.Sqrt(Math.Pow(m1, 2) + Math.Pow(m2, 2));
             ScaleY = (float)Math.Sqrt(Math.Pow(m3, 2) + Math.Pow(m4, 2));
             det = m1 * m4 - m3 * m2;
+
+            Debug.WriteLine($"[{m1:F5};{m2:F5};{mX:F5}]");
+            Debug.WriteLine($"[{m3:F5};{m4:F5};{mY:F5}]");
+            Debug.WriteLine("");
 
             if (det < 0)
             {

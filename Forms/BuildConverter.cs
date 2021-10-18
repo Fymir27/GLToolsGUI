@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -72,6 +73,8 @@ namespace GLToolsGUI.Forms
                     return;
                 }
             }
+
+            SCML.createFile("anim.scml", _currentlyLoadedBuild, anim);
         }
 
         private void saveBuild_Click(object sender, EventArgs e)

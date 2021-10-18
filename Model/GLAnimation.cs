@@ -12,7 +12,7 @@ namespace GLToolsGUI.Model
         public int Flag;
         public int FrameCount;
         public GLAnimFrame[] GLAnimFrames;
-        public Dictionary<string, double> Last = new Dictionary<string, double>
+        public Dictionary<string, double> Last = new()
         {
             { "angle", 0 },
             { "scale_x", 0 },
