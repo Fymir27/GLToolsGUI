@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Text.Json;
 using System.Windows.Forms;
 using GLToolsGUI.Model;
 using GLToolsGUI.Utils;
@@ -74,7 +75,14 @@ namespace GLToolsGUI.Forms
                 }
             }
 
-            SCML.createFile("anim.scml", _currentlyLoadedBuild, anim);
+            /* Klei Format as readable JSON
+            File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
+            {
+                IncludeFields = true,
+                WriteIndented = true,
+            }));
+            */
+            SCML.CreateFile("anim.scml", _currentlyLoadedBuild, anim);
         }
 
         private void saveBuild_Click(object sender, EventArgs e)
