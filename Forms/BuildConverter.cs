@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows.Forms;
 using GLToolsGUI.Model;
 using GLToolsGUI.Utils;
@@ -56,7 +58,32 @@ namespace GLToolsGUI.Forms
                     return;
                 }
             }
-
+            
+            // Klei Build Format as readable JSON
+            /* File.WriteAllText("build.json", JsonSerializer.Serialize(_currentlyLoadedBuild, new JsonSerializerOptions
+            {
+                IncludeFields = true,
+                NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                WriteIndented = true
+            })); */
+            
+            // symbol refs
+            File.WriteAllText("symbol_refs.json", JsonSerializer.Serialize(
+                _currentlyLoadedBuild.Symbols.Select(symbol => new
+                {
+                    symbol.Ref1,
+                    Ref1Resolved = _currentlyLoadedBuild.Refs[symbol.Ref1],
+                    symbol.Ref2,
+                    Ref2Resolved = _currentlyLoadedBuild.Refs[symbol.Ref2],
+                }), 
+                new JsonSerializerOptions
+                {
+                    IncludeFields = true,
+                    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+                    WriteIndented = true
+                })
+            );
+            
             buildName.Text = _currentlyLoadedBuild.Root;
             
             GLAnimationSet anim;
@@ -75,8 +102,8 @@ namespace GLToolsGUI.Forms
                 }
             }
 
-            /* Klei Format as readable JSON
-            File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
+            // Klei Animation Format as readable JSON
+            /* File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
             {
                 IncludeFields = true,
                 WriteIndented = true,

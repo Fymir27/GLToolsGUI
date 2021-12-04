@@ -173,12 +173,8 @@ namespace GLToolsGUI.Model
             foreach (var symbol in Symbols)
             {
                 var frames = new Dictionary<string, MagickImage>();
-                foreach (var frame in symbol.Frames)
+                foreach (var frame in symbol.GetValidFrames())
                 {
-                    if (frame.BuildIndex == -1)
-                    {
-                        continue;
-                    }
                     var frameGeometry = frame.BoundingBox.GetScaledGeometry(image.Width, image.Height);
                     var frameImage = new MagickImage(image);
                     frameImage.Crop(frameGeometry);

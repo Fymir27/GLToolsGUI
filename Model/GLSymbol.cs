@@ -1,4 +1,6 @@
-﻿using GLToolsGUI.Utils;
+﻿using System.Collections.Generic;
+using System.Linq;
+using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
 {
@@ -34,5 +36,7 @@ namespace GLToolsGUI.Model
                 frame.Write(writer);
             }
         }
+
+        public IEnumerable<GLFrame> GetValidFrames() => Frames.Where(f => f.BuildIndex >= 0);
     }
 }
