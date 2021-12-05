@@ -8,22 +8,19 @@ namespace GLToolsGUI.Utils
 {
     public static class SCML
     {
-
-        private static Dictionary<int, int> _refToFolderID;
-        private static Dictionary<int, string> _animationRefs;
         private static List<int> _folderRefs;
 
         public record FrameFile(int ID, string Name, GLFrame Frame);
+
         public record AnimationFolder(int ID, string Name, List<FrameFile> Files);
 
-        
-        
+
         public static bool CreateFile(string filename, GLBuild build, GLAnimationSet animationSet,
             string frameFormat = "png")
         {
             Debug.WriteLine("Build Refs: \n" + string.Join("\n", build.Refs.Select((key, value) =>
                 $"{key}:{value}")));
-            
+
             Debug.WriteLine("Animation Refs: \n" + string.Join("\n", animationSet.Refs.Select((key, value) =>
                 $"{key}:{value}")));
 
@@ -33,7 +30,7 @@ namespace GLToolsGUI.Utils
             {
                 build.DisassembleRootTexture();
             }
-            
+
             var animationFolders = new Dictionary<int, AnimationFolder>();
             int nextFolderID = 0;
             foreach (var symbol in build.Symbols)
@@ -42,7 +39,7 @@ namespace GLToolsGUI.Utils
                     .GetValidFrames()
                     .Select(frame => new FrameFile(frame.Index, $"{frame.Index}.{frameFormat}", frame))
                     .ToList();
-                
+
                 var folder = new AnimationFolder(nextFolderID++, build.Refs[symbol.Ref1], files);
                 animationFolders[symbol.Ref1] = folder;
                 animationFolders[symbol.Ref2] = folder;
@@ -95,31 +92,33 @@ namespace GLToolsGUI.Utils
             return animation.GLAnimFrames
                 .SelectMany
                 (
-                    (frame, frameIndex) => frame.GLElements.Select
-                    (
-                        element => (FrameIndex: frameIndex, Element: element) // TODO: check if this works 
-                    )
+                    (frame, frameIndex) => frame.GLElements
+                        .Select
+                        (
+                            element => (FrameIndex: frameIndex, Element: element) 
+                        )
                 )
                 .GroupBy
                 (
-                    x => (x.Element.Ref,(int)x.Element.index),
+                    x => (x.Element.Ref, (int)x.Element.index),
                     x => x,
                     (elementIdentification, elementStates) =>
                     {
                         (int @ref, int index) = elementIdentification;
-                        //Debug.Assert(elementStates.Select(e => e.Element.index).All(i => i == elementStates.First().Element.index));
                         return new XElement("timeline",
-                            new XAttribute("id", timelineID++), // TODO: actually create element lookup with indexes and shit
+                            new XAttribute("id", timelineID++),
                             new XAttribute("name",
                                 $"{animationRefs[@ref]}-{index}"),
                             new XAttribute("object_type",
                                 _folderRefs.IndexOf(@ref) == -1 ? "entity" : "sprite"),
                             GetTimelineKeys(elementStates, animation.Framerate)
                         );
-                    });
+                    }
+                );
         }
 
-        private static IEnumerable<XElement> GetTimelineKeys(IEnumerable<(int FrameIndex, GLElement Element)> elementStates, float framerate)
+        private static IEnumerable<XElement> GetTimelineKeys(
+            IEnumerable<(int FrameIndex, GLElement Element)> elementStates, float framerate)
         {
             return elementStates.Select((elementState) => new XElement("key",
                 new XAttribute("id", elementState.FrameIndex),
@@ -130,24 +129,36 @@ namespace GLToolsGUI.Utils
         }
 
         private static IEnumerable<XElement> GetMainlineKeys(GLAnimation animation)
-        { 
+        {
+            var timelineIDLookup = new Dictionary<(int @ref, int index), int>();
             return animation.GLAnimFrames
                 .Select((frame, frameIndex) => new XElement("key",
-                new XAttribute("id", frameIndex),
-                new XAttribute("time", frameIndex * animation.Framerate),
-                GetObjectRefs(frame, frameIndex)
-            ));
+                    new XAttribute("id", frameIndex),
+                    new XAttribute("time", frameIndex * animation.Framerate),
+                    GetObjectRefs(frame, frameIndex, timelineIDLookup)
+                ));
         }
-        
-        private static IEnumerable<XElement> GetObjectRefs(GLAnimFrame frame, int frameIndex)
+
+        private static IEnumerable<XElement> GetObjectRefs(GLAnimFrame frame, int frameIndex, Dictionary<(int @ref, int index), int> timelineIDLookup)
         {
             // TODO: no element info in this at all?
-            return frame.GLElements.Select((element, elementIndex) => new XElement("object_ref",
-                new XAttribute("id", elementIndex),
-                new XAttribute("timeline", element.index), // TODO: get index of ref instead?
-                new XAttribute("key", frameIndex),
-                new XAttribute("z_index", frame.ElementCount - elementIndex)
-            ));
+            var objectRefs = frame.GLElements.Select(element =>
+            {
+                var elementIdentification = (element.Ref, (int)element.index);
+                if (!timelineIDLookup.TryGetValue(elementIdentification, out int timelineID))
+                {
+                    timelineID = timelineIDLookup.Count == 0 ? 0 : timelineIDLookup.Values.Max() + 1;
+                    timelineIDLookup[elementIdentification] = timelineID;
+                }
+                return new XElement("object_ref",
+                    new XAttribute("id", element.index),
+                    new XAttribute("timeline", timelineID),
+                    new XAttribute("key", frameIndex),
+                    new XAttribute("z_index", frame.ElementCount - element.index)
+                );
+            });
+
+            return objectRefs;
         }
 
         private static XElement GetFolderNode(AnimationFolder animationFolder)

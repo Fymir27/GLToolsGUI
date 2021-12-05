@@ -72,9 +72,9 @@ namespace GLToolsGUI.Model
             ScaleY = (float)Math.Sqrt(Math.Pow(m3, 2) + Math.Pow(m4, 2));
             det = m1 * m4 - m3 * m2;
 
-            Debug.WriteLine($"[{m1:F5};{m2:F5};{mX:F5}]");
-            Debug.WriteLine($"[{m3:F5};{m4:F5};{mY:F5}]");
-            Debug.WriteLine("");
+            //Debug.WriteLine($"[{m1:F5};{m2:F5};{mX:F5}]");
+            //Debug.WriteLine($"[{m3:F5};{m4:F5};{mY:F5}]");
+            //Debug.WriteLine("");
 
             if (det < 0)
             {
@@ -97,6 +97,7 @@ namespace GLToolsGUI.Model
             {
                 //May have to revisit this but it seems to give values close enough
                 double SinApx = 0.5 * (m3 / ScaleY - m2 / ScaleX);
+                /*
                 if (SinApx != 0 && SinApx != 1)
                 {
                     if (SinApx > -0.5)
@@ -108,7 +109,9 @@ namespace GLToolsGUI.Model
                         SinApx = -1;
                     }
                 }
+                */
                 double CosApx = 0.5 * (m1 / ScaleX + m4 / ScaleY);
+                /*
                 if (CosApx != 0 && CosApx != 1)
                 {
                     if (CosApx > -0.5)
@@ -120,6 +123,7 @@ namespace GLToolsGUI.Model
                         CosApx = -1;
                     }
                 }
+                */
                 Angle = Math.Atan2(SinApx, CosApx);
             }
 

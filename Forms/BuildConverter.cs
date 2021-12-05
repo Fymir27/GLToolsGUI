@@ -60,12 +60,12 @@ namespace GLToolsGUI.Forms
             }
             
             // Klei Build Format as readable JSON
-            /* File.WriteAllText("build.json", JsonSerializer.Serialize(_currentlyLoadedBuild, new JsonSerializerOptions
+            File.WriteAllText("build.json", JsonSerializer.Serialize(_currentlyLoadedBuild, new JsonSerializerOptions
             {
                 IncludeFields = true,
                 NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
                 WriteIndented = true
-            })); */
+            }));
             
             // symbol refs
             File.WriteAllText("symbol_refs.json", JsonSerializer.Serialize(
@@ -103,12 +103,11 @@ namespace GLToolsGUI.Forms
             }
 
             // Klei Animation Format as readable JSON
-            /* File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
+            File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
             {
                 IncludeFields = true,
                 WriteIndented = true,
             }));
-            */
             SCML.CreateFile("anim.scml", _currentlyLoadedBuild, anim);
         }
 
