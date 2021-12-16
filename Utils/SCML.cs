@@ -71,16 +71,28 @@ namespace GLToolsGUI.Utils
             return true;
         }
 
-        private static string GetFullAnimationName(GLAnimation animation)
+        private static XElement GetFolderNode(AnimationFolder animationFolder)
         {
-            return animation.Name1 == animation.Name2 ? animation.Name1 : $"{animation.Name1}-{animation.Name2}";
+            return new XElement("folder",
+                new XAttribute("id", animationFolder.ID),
+                new XAttribute("name", animationFolder.Name),
+                animationFolder.Files.Select(file => new XElement("file",
+                    new XAttribute("id", file.ID),
+                    new XAttribute("name", $"{animationFolder.Name}/{file.Name}"),
+                    new XAttribute("width", file.Frame.Width),
+                    new XAttribute("height", file.Frame.Height),
+                    new XAttribute("pivot_x", file.Frame.PivotX),
+                    new XAttribute("pivot_y", file.Frame.PivotY)
+                ))
+            );
         }
 
         private static IEnumerable<XElement> GetAnimationNodes(GLAnimationSet animationSet,
             Dictionary<int, string> animationRefs)
         {
-            var timelinesOfAnimations = animationSet.GLAnimations.Select(
-                animation => ConstructTimelines(animation, animationRefs)
+            var timelineKeysOfAnimations = animationSet.GLAnimations.Select(GetAllTimelineKeys).ToList();
+            var timelinesOfAnimations = timelineKeysOfAnimations.Select(
+                keysOfAnimation => ConstructTimelines(keysOfAnimation, animationRefs)
             ).ToList();
 
             return animationSet.GLAnimations.Select((animation, animationIndex) => new XElement("animation",
@@ -88,22 +100,34 @@ namespace GLToolsGUI.Utils
                 new XAttribute("id", animationIndex),
                 new XAttribute("length", animation.Framerate * animation.FrameCount),
                 new XAttribute("interval", 100), // TODO: should this always the same?
-                new XElement("mainline", GetMainlineKeys(animation)),
-                GetTimelineNodes(animation, timelinesOfAnimations[animationIndex].Values)
+                new XElement("mainline", GetMainlineKeys(timelinesOfAnimations[animationIndex])),
+                GetTimelineNodes(timelinesOfAnimations[animationIndex].Values)
             ));
         }
 
-        private static Dictionary<ElementID, Timeline> ConstructTimelines(GLAnimation animation,
-            Dictionary<int, string> animationRefs)
+        private static string GetFullAnimationName(GLAnimation animation)
         {
-            var timelineID = 0;
-            return new Dictionary<ElementID, Timeline>(animation.GLAnimFrames
+            return animation.Name1 == animation.Name2 ? animation.Name1 : $"{animation.Name1}-{animation.Name2}";
+        }
+
+        private static List<TimelineKey> GetAllTimelineKeys(GLAnimation animation)
+        {
+            return animation.GLAnimFrames
                 .SelectMany
                 (
                     (frame, frameIndex) => frame.GLElements.Select(element =>
                         new TimelineKey(frameIndex, frameIndex * animation.Framerate, element))
                 )
-                .GroupBy
+                .ToList();
+        }
+
+        private static Dictionary<ElementID, Timeline> ConstructTimelines(IEnumerable<TimelineKey> timelineKeys,
+            Dictionary<int, string> animationRefs)
+        {
+            var timelineID = 0;
+            return new Dictionary<ElementID, Timeline>
+            (
+                timelineKeys.GroupBy
                 (
                     timelineKey => new ElementID
                     (
@@ -111,7 +135,7 @@ namespace GLToolsGUI.Utils
                         (int)timelineKey.Element.index
                     ),
                     timelineKey => timelineKey,
-                    (elementID, timelineKeys) => KeyValuePair.Create
+                    (elementID, keysOfTimeline) => KeyValuePair.Create
                     (
                         elementID,
                         new Timeline
@@ -119,15 +143,14 @@ namespace GLToolsGUI.Utils
                             timelineID++,
                             $"{animationRefs[elementID.Ref]}-{elementID.Index}",
                             _folderRefs.IndexOf(elementID.Ref) == -1 ? "entity" : "sprite",
-                            timelineKeys.ToList()
+                            keysOfTimeline.ToList()
                         )
                     )
                 )
             );
         }
 
-        private static IEnumerable<XElement> GetTimelineNodes(GLAnimation animation,
-            IEnumerable<Timeline> timelines)
+        private static IEnumerable<XElement> GetTimelineNodes(IEnumerable<Timeline> timelines)
         {
             return timelines.Select(timeline =>
             {
@@ -145,57 +168,6 @@ namespace GLToolsGUI.Utils
                     )
                 );
             });
-        }
-
-        private static IEnumerable<XElement> GetMainlineKeys(GLAnimation animation)
-        {
-            var timelineIDLookup = new Dictionary<(int @ref, int index), int>();
-            return animation.GLAnimFrames
-                .Select((frame, frameIndex) => new XElement("key",
-                    new XAttribute("id", frameIndex),
-                    new XAttribute("time", frameIndex * animation.Framerate),
-                    GetObjectRefs(frame, frameIndex, timelineIDLookup)
-                ));
-        }
-
-        private static IEnumerable<XElement> GetObjectRefs(GLAnimFrame frame, int frameIndex,
-            Dictionary<(int @ref, int index), int> timelineIDLookup)
-        {
-            // TODO: no element info in this at all?
-            var objectRefs = frame.GLElements.Select(element =>
-            {
-                var elementIdentification = (element.Ref, (int)element.index);
-                if (!timelineIDLookup.TryGetValue(elementIdentification, out int timelineID))
-                {
-                    timelineID = timelineIDLookup.Count == 0 ? 0 : timelineIDLookup.Values.Max() + 1;
-                    timelineIDLookup[elementIdentification] = timelineID;
-                }
-
-                return new XElement("object_ref",
-                    new XAttribute("id", element.index),
-                    new XAttribute("timeline", timelineID),
-                    new XAttribute("key", frameIndex),
-                    new XAttribute("z_index", frame.ElementCount - element.index)
-                );
-            });
-
-            return objectRefs;
-        }
-
-        private static XElement GetFolderNode(AnimationFolder animationFolder)
-        {
-            return new XElement("folder",
-                new XAttribute("id", animationFolder.ID),
-                new XAttribute("name", animationFolder.Name),
-                animationFolder.Files.Select(file => new XElement("file",
-                    new XAttribute("id", file.ID),
-                    new XAttribute("name", $"{animationFolder.Name}/{file.Name}"),
-                    new XAttribute("width", file.Frame.Width),
-                    new XAttribute("height", file.Frame.Height),
-                    new XAttribute("pivot_x", file.Frame.PivotX),
-                    new XAttribute("pivot_y", file.Frame.PivotY)
-                ))
-            );
         }
 
         private static XElement GetSpatialInfo(GLElement element)
@@ -230,6 +202,39 @@ namespace GLToolsGUI.Utils
             }
 
             return objectNode;
+        }
+
+        private static IEnumerable<XElement> GetMainlineKeys(Dictionary<ElementID, Timeline> timelines)
+        {
+            return timelines
+                .Values
+                .SelectMany(timeline => timeline.KeyFrames.Select(timelineKey => (timeline.ID, timelineKey)))
+                .GroupBy
+                (
+                    tuple => tuple.timelineKey.FrameIndex,
+                    tuple => tuple,
+                    (frameIndex, keyTuples) =>
+                    {
+                        var keyTupleList = keyTuples.ToList();
+                        float time = keyTupleList.First().timelineKey.Time;
+                        return new XElement("key",
+                            new XAttribute("id", frameIndex),
+                            new XAttribute("time", time),
+                            GetObjectRefs(keyTupleList)
+                        );
+                    });
+        }
+
+        private static IEnumerable<XElement> GetObjectRefs(
+            List<(int timelineID, TimelineKey timelineKey)> timelineKeyTuples)
+        {
+            var zIndex = timelineKeyTuples.Count;
+            return timelineKeyTuples.Select((tuple, id) => new XElement("object_ref",
+                new XAttribute("id", id),
+                new XAttribute("timeline", tuple.timelineID),
+                new XAttribute("key", tuple.timelineKey.FrameIndex),
+                new XAttribute("z_index", zIndex--)
+            ));
         }
     }
 }
