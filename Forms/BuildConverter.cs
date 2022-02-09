@@ -59,7 +59,7 @@ namespace GLToolsGUI.Forms
                 }
             }
             
-            // Klei Build Format as readable JSON
+            // Klei Build Format as readable JSON; TODO: remove
             File.WriteAllText("build.json", JsonSerializer.Serialize(_currentlyLoadedBuild, new JsonSerializerOptions
             {
                 IncludeFields = true,
@@ -67,7 +67,7 @@ namespace GLToolsGUI.Forms
                 WriteIndented = true
             }));
             
-            // symbol refs
+            // symbol refs as JSON; TODO: remove
             File.WriteAllText("symbol_refs.json", JsonSerializer.Serialize(
                 _currentlyLoadedBuild.Symbols.Select(symbol => new
                 {
@@ -87,8 +87,8 @@ namespace GLToolsGUI.Forms
             buildName.Text = _currentlyLoadedBuild.Root;
             
             GLAnimationSet anim;
-            string AnimPath = Path.GetFullPath(Path.Combine(dialog.FileName, "..", "anim.bin"));
-            var animFile = File.OpenRead(AnimPath);
+            string animPath = Path.GetFullPath(Path.Combine(dialog.FileName, "..", "anim.bin"));
+            var animFile = File.OpenRead(animPath);
             using (var reader = new GLReader(animFile))
             {
                 try
@@ -97,18 +97,22 @@ namespace GLToolsGUI.Forms
                 }
                 catch (Exception exception)
                 {
-                    Console.WriteLine("Error loading anim: " + exception.Message);
+                    Popup.Error("Error loading anim: ", true, "Error", exception);
                     return;
                 }
             }
 
-            // Klei Animation Format as readable JSON
+            // Klei Animation Format as readable JSON; TODO: remove
             File.WriteAllText("anim.json", JsonSerializer.Serialize(anim, new JsonSerializerOptions()
             {
                 IncludeFields = true,
                 WriteIndented = true,
             }));
-            SCML.CreateFile("anim.scml", _currentlyLoadedBuild, anim);
+
+            if (!SCMLWriter.CreateFile("anim.scml", _currentlyLoadedBuild, anim))
+            {
+                Popup.Error("Failed to write SCML file");
+            }
         }
 
         private void saveBuild_Click(object sender, EventArgs e)

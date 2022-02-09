@@ -3,22 +3,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Xml.Linq;
 using GLToolsGUI.Model;
+using GLToolsGUI.Model.SCML;
 
 namespace GLToolsGUI.Utils
 {
-    public static class SCML
+    public static class SCMLWriter
     {
         private static List<int> _folderRefs;
-
-        public record FrameFile(int ID, string Name, GLFrame Frame);
-
-        public record AnimationFolder(int ID, string Name, List<FrameFile> Files);
-
-        public record Timeline(int ID, string Name, string ObjectType, List<TimelineKey> KeyFrames);
-
-        public record TimelineKey(int FrameIndex, float Time, GLElement Element);
-
-        public record ElementID(int Ref, int Index);
 
         public static bool CreateFile(string filename, GLBuild build, GLAnimationSet animationSet,
             string frameFormat = "png")
@@ -162,7 +153,6 @@ namespace GLToolsGUI.Utils
                         new XElement("key",
                             new XAttribute("id", keyFrame.FrameIndex),
                             new XAttribute("time", keyFrame.Time),
-                            // TODO: "curve_type"
                             GetSpatialInfo(keyFrame.Element)
                         )
                     )
