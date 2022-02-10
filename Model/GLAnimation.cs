@@ -12,12 +12,7 @@ namespace GLToolsGUI.Model
         public int Flag;
         public int FrameCount;
         public GLAnimFrame[] GLAnimFrames;
-        public Dictionary<string, double> Last = new()
-        {
-            { "angle", 0 },
-            { "scale_x", 0 },
-            { "scale_y", 0 }
-        };
+        
         public GLAnimation(GLReader reader)
         {
             Name1 = reader.ReadString();
@@ -29,7 +24,7 @@ namespace GLToolsGUI.Model
             GLAnimFrames = new GLAnimFrame[FrameCount];
             for (var i = 0; i < FrameCount; i++)
             {
-                GLAnimFrames[i] = new GLAnimFrame(reader, Last);
+                GLAnimFrames[i] = new GLAnimFrame(reader);
             }
         }
     }

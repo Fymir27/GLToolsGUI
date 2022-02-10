@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using GLToolsGUI.Utils;
+﻿using GLToolsGUI.Utils;
 
 namespace GLToolsGUI.Model
 {
@@ -11,7 +10,7 @@ namespace GLToolsGUI.Model
         public float Height;
         public int ElementCount;
         public GLElement[] GLElements;
-        public GLAnimFrame(GLReader reader, Dictionary<string, double> Last)
+        public GLAnimFrame(GLReader reader)
         {
             x = reader.ReadFloat();
             y = reader.ReadFloat();
@@ -20,9 +19,16 @@ namespace GLToolsGUI.Model
             ElementCount = reader.ReadInt32();
 
             GLElements = new GLElement[ElementCount];
+            double prevAngle = 0;
+            float prevScaleX = 0;
+            float prevScaleY = 0;
             for (var i = 0; i < ElementCount; i++)
             {
-                GLElements[i] = new GLElement(reader, Last);
+                var el = new GLElement(reader, prevAngle, prevScaleX, prevScaleY);
+                prevAngle = el.Angle;
+                prevScaleX = el.ScaleX;
+                prevScaleY = el.ScaleY;
+                GLElements[i] = el;
             }
         }
     }

@@ -38,14 +38,8 @@ namespace GLToolsGUI.Model
 
         private float det;
         private bool IsFirst = true;
-        /*private Dictionary<string, int> Last = new Dictionary<string, int>
-        {
-            { "angle", 0 },
-            { "scale_x", 0 },
-            { "scale_y", 0 }
-        };*/
 
-        public GLElement(GLReader reader, Dictionary<string, double> Last)
+        public GLElement(GLReader reader, double prevAngle, float prevScaleX, float prevScaleY)
         {
             Ref = reader.ReadInt32();
             Ndx = reader.ReadInt32();
@@ -72,13 +66,9 @@ namespace GLToolsGUI.Model
             ScaleY = (float)Math.Sqrt(Math.Pow(m3, 2) + Math.Pow(m4, 2));
             det = m1 * m4 - m3 * m2;
 
-            //Debug.WriteLine($"[{m1:F5};{m2:F5};{mX:F5}]");
-            //Debug.WriteLine($"[{m3:F5};{m4:F5};{mY:F5}]");
-            //Debug.WriteLine("");
-
             if (det < 0)
             {
-                if (IsFirst || Last["scale_x"] < Last["scale_y"])
+                if (IsFirst || prevScaleX < prevScaleY)
                 {
                     ScaleX *= -1;
                     IsFirst = false;
@@ -91,43 +81,16 @@ namespace GLToolsGUI.Model
 
             if (Math.Abs(ScaleX) < 1e-3 || Math.Abs(ScaleY) < 1e-3)
             {
-                Angle = Last["angle"];
+                Angle = prevAngle;
             }
             else
             {
-                //May have to revisit this but it seems to give values close enough
-                double SinApx = 0.5 * (m3 / ScaleY - m2 / ScaleX);
-                /*
-                if (SinApx != 0 && SinApx != 1)
-                {
-                    if (SinApx > -0.5)
-                    {
-                        SinApx = -0;
-                    }
-                    else
-                    {
-                        SinApx = -1;
-                    }
-                }
-                */
-                double CosApx = 0.5 * (m1 / ScaleX + m4 / ScaleY);
-                /*
-                if (CosApx != 0 && CosApx != 1)
-                {
-                    if (CosApx > -0.5)
-                    {
-                        CosApx = -0;
-                    }
-                    else
-                    {
-                        CosApx = -1;
-                    }
-                }
-                */
-                Angle = Math.Atan2(SinApx, CosApx);
+                double sinApx = 0.5 * (m3 / ScaleY - m2 / ScaleX);
+                double cosApx = 0.5 * (m1 / ScaleX + m4 / ScaleY);
+                Angle = Math.Atan2(sinApx, cosApx);
             }
 
-            if (Math.Abs(Angle - Last["angle"]) <= Math.PI)
+            if (Math.Abs(Angle - prevAngle) <= Math.PI)
             {
                 Spin = -1;
             }
@@ -136,7 +99,7 @@ namespace GLToolsGUI.Model
                 Spin = 1;
             }
 
-            if (Angle < Last["angle"])
+            if (Angle < prevAngle)
             {
                 Spin *= -1;
             }
@@ -147,10 +110,6 @@ namespace GLToolsGUI.Model
             }
 
             Angle = (float)(Angle * 180 / Math.PI);
-
-            Last["angle"] = Angle;
-            Last["scale_x"] = ScaleX;
-            Last["scale_y"] = ScaleY;
         }
     }
 }
