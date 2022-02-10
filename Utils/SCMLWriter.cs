@@ -153,6 +153,7 @@ namespace GLToolsGUI.Utils
                         new XElement("key",
                             new XAttribute("id", keyFrame.FrameIndex),
                             new XAttribute("time", keyFrame.Time),
+                            new XAttribute("curve_type", "instant"),
                             GetSpatialInfo(keyFrame.Element)
                         )
                     )
