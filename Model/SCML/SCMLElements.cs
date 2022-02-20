@@ -1,14 +1,22 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Serialization;
+using SpriterDotNet;
 
 namespace GLToolsGUI.Model.SCML
-{
-    public record TimelineKey(int FrameIndex, float Time, GLElement Element);
-
+{   
+    /**
+     * uniquely identifies an element inside a GL animation
+     */
     public record ElementID(int Ref, int Index);
 
-    public record Timeline(int ID, string Name, string ObjectType, List<TimelineKey> KeyFrames);
-
-    public record AnimationFolder(int ID, string Name, List<FrameFile> Files);
-
-    public record FrameFile(int ID, string Name, GLFrame Frame);
+    /**
+     * extended Spriter to include XML attributes in root
+     */
+    [XmlRoot("spriter_data")]
+    public class GLSpriterData : Spriter
+    {
+        [XmlAttribute("scml_version")] public string SCMLVersion = "1.0";
+        [XmlAttribute("generator")] public string Generator = "BrashMonkey Spriter";
+        [XmlAttribute("generator_version")] public string GeneratorVersion = "r11";
+    }
 }

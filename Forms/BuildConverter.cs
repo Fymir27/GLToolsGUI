@@ -109,7 +109,7 @@ namespace GLToolsGUI.Forms
                 WriteIndented = true,
             }));
 
-            if (!SCMLWriter.CreateFile("anim.scml", _currentlyLoadedBuild, anim))
+            if (!SCMLWriter.WriteGLAnimation("anim.scml", _currentlyLoadedBuild, anim))
             {
                 Popup.Error("Failed to write SCML file");
             }

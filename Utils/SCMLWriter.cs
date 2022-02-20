@@ -1,231 +1,218 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Xml.Linq;
+using System.Xml.Serialization;
 using GLToolsGUI.Model;
 using GLToolsGUI.Model.SCML;
+using SpriterDotNet;
 
 namespace GLToolsGUI.Utils
 {
     public static class SCMLWriter
     {
-        private static List<int> _folderRefs;
-
-        public static bool CreateFile(string filename, GLBuild build, GLAnimationSet animationSet,
+        public static bool WriteGLAnimation(string path, GLBuild build, GLAnimationSet animationSet,
             string frameFormat = "png")
         {
+            #region debug output
             Debug.WriteLine("Build Refs: \n" + string.Join("\n", build.Refs.Select((key, value) =>
                 $"{key}:{value}")));
 
             Debug.WriteLine("Animation Refs: \n" + string.Join("\n", animationSet.Refs.Select((key, value) =>
                 $"{key}:{value}")));
-
-            _folderRefs = build.Symbols.Select(s => s.Ref1).ToList();
+            #endregion
 
             if (build.Parts is null || build.Parts.Count == 0)
             {
                 build.DisassembleRootTexture();
             }
 
-            var animationFolders = new Dictionary<int, AnimationFolder>();
-            int nextFolderID = 0;
+            var animationFolders = new Dictionary<int, SpriterFolder>();
+            var nextFolderID = 0;
             foreach (var symbol in build.Symbols)
             {
-                var files = symbol
+                var folder = new SpriterFolder { Id = nextFolderID++, Name = build.Refs[symbol.Ref1] };
+                folder.Files = symbol
                     .GetValidFrames()
-                    .Select(frame => new FrameFile(frame.Index, $"{frame.Index}.{frameFormat}", frame))
-                    .ToList();
+                    .Select(frame => GLFrameToSpriterFile(folder, frame, frameFormat))
+                    .ToArray();
 
-                var folder = new AnimationFolder(nextFolderID++, build.Refs[symbol.Ref1], files);
                 animationFolders[symbol.Ref1] = folder;
                 animationFolders[symbol.Ref2] = folder;
             }
 
-            var doc = new XDocument
-            (
-                new XDeclaration("1.0", "utf-8", "yes"),
-                new XElement("spriter_data",
-                    new XAttribute("scml_version", "1.0"),
-                    new XAttribute("generator", "BrashMonkey Spriter"),
-                    new XAttribute("generator_version", "r11"),
-                    build.Symbols.Select(symbol => GetFolderNode(animationFolders[symbol.Ref1])),
-                    new XElement("entity",
-                        new XAttribute("id", 0),
-                        new XAttribute("name", build.Root),
-                        GetAnimationNodes(animationSet, animationSet.Refs)
-                    )
-                )
-            );
+            var spriterData = new GLSpriterData
+            {
+                Folders = build.Symbols.Select(symbol => animationFolders[symbol.Ref1]).ToArray(),
+                Entities = new SpriterEntity[]
+                {
+                    new()
+                    {
+                        Id = 0,
+                        Name = build.Root,
+                        Animations = animationSet.GLAnimations
+                            .Select((animation, id) =>
+                                GLAnimationToSpriterAnimation(animation, id, animationSet.Refs, animationFolders))
+                            .ToArray()
+                    }
+                }
+            };
 
-            doc.Save(filename);
+            var ser = new XmlSerializer(typeof(GLSpriterData));
+            using var fs = new FileStream(path, FileMode.Create);
+            ser.Serialize(fs, spriterData);
 
             return true;
         }
 
-        private static XElement GetFolderNode(AnimationFolder animationFolder)
+        private static SpriterAnimation GLAnimationToSpriterAnimation(GLAnimation glAnimation, int animationID,
+            Dictionary<int, string> refs, Dictionary<int, SpriterFolder> folders)
         {
-            return new XElement("folder",
-                new XAttribute("id", animationFolder.ID),
-                new XAttribute("name", animationFolder.Name),
-                animationFolder.Files.Select(file => new XElement("file",
-                    new XAttribute("id", file.ID),
-                    new XAttribute("name", $"{animationFolder.Name}/{file.Name}"),
-                    new XAttribute("width", file.Frame.Width),
-                    new XAttribute("height", file.Frame.Height),
-                    new XAttribute("pivot_x", file.Frame.PivotX),
-                    new XAttribute("pivot_y", file.Frame.PivotY)
-                ))
+            var timelineKeysWithElementID = GetTimelineKeysWithElementID(glAnimation, animationID, folders);
+
+            var timelines = GetTimelines(timelineKeysWithElementID, folders, refs);
+
+            SpriterMainlineKey ConstructMainlineKey(int frameIndex,
+                IEnumerable<(ElementID ID, SpriterTimelineKey TimelineKey)> keysWithID)
+            {
+                var listOfTimelineKeys = keysWithID.ToList();
+                var firstKey = listOfTimelineKeys.First().TimelineKey;
+                float time = firstKey.Time;
+                int zIndex = listOfTimelineKeys.Count;
+                return new SpriterMainlineKey
+                {
+                    Id = frameIndex,
+                    Time = time,
+                    CurveType = SpriterCurveType.Instant,
+                    ObjectRefs = listOfTimelineKeys.Select((tuple, objectRefID) => new SpriterObjectRef
+                    {
+                        Id = objectRefID,
+                        TimelineId = timelines[tuple.ID].Id,
+                        KeyId = frameIndex,
+                        ZIndex = zIndex--
+                    }).ToArray()
+                };
+            }
+
+            var mainlineKeys = timelineKeysWithElementID.GroupBy
+            (
+                x => x.TimelineKey.Id, // == frameIndex
+                x => x,
+                ConstructMainlineKey
             );
+
+            return new SpriterAnimation
+            {
+                Id = animationID,
+                Name = GetAnimationName(glAnimation),
+                Length = glAnimation.Framerate * glAnimation.FrameCount,
+                MainlineKeys = mainlineKeys.ToArray(),
+                Timelines = timelines.Values.ToArray()
+            };
         }
 
-        private static IEnumerable<XElement> GetAnimationNodes(GLAnimationSet animationSet,
-            Dictionary<int, string> animationRefs)
+        private static Dictionary<ElementID, SpriterTimeline> GetTimelines(
+            List<(ElementID ID, SpriterTimelineKey TimelineKey)> timelineKeysWithElementID,
+            Dictionary<int, SpriterFolder> folders,
+            Dictionary<int, string> refs)
         {
-            var timelineKeysOfAnimations = animationSet.GLAnimations.Select(GetAllTimelineKeys).ToList();
-            var timelinesOfAnimations = timelineKeysOfAnimations.Select(
-                keysOfAnimation => ConstructTimelines(keysOfAnimation, animationRefs)
-            ).ToList();
+            var nextTimelineID = 0;
 
-            return animationSet.GLAnimations.Select((animation, animationIndex) => new XElement("animation",
-                new XAttribute("name", GetFullAnimationName(animation)),
-                new XAttribute("id", animationIndex),
-                new XAttribute("length", animation.Framerate * animation.FrameCount),
-                new XAttribute("interval", 100), // TODO: should this always the same?
-                new XElement("mainline", GetMainlineKeys(timelinesOfAnimations[animationIndex])),
-                GetTimelineNodes(timelinesOfAnimations[animationIndex].Values)
+            KeyValuePair<ElementID, SpriterTimeline> ConstructTimeline(
+                ElementID elementID,
+                IEnumerable<SpriterTimelineKey> keysOfTimeline)
+            {
+                return KeyValuePair.Create(elementID, new SpriterTimeline
+                {
+                    Id = nextTimelineID++,
+                    Name = $"{refs[elementID.Ref]}-{elementID.Index}",
+                    ObjectType = folders.ContainsKey(elementID.Ref)
+                        ? SpriterObjectType.Entity
+                        : SpriterObjectType.Sprite,
+                    Keys = keysOfTimeline.ToArray()
+                });
+            }
+
+            var timelines = new Dictionary<ElementID, SpriterTimeline>(timelineKeysWithElementID.GroupBy
+            (
+                tuple => tuple.ID,
+                tuple => tuple.TimelineKey,
+                ConstructTimeline
             ));
+            return timelines;
         }
 
-        private static string GetFullAnimationName(GLAnimation animation)
+        private static List<(ElementID ID, SpriterTimelineKey TimelineKey)> GetTimelineKeysWithElementID(
+            GLAnimation glAnimation,
+            int animationID,
+            Dictionary<int, SpriterFolder> folders)
+        {
+            var timelineKeysWithElementID = glAnimation.GLAnimFrames.SelectMany
+            (
+                (frame, frameIndex) => frame.GLElements.Select(element =>
+                {
+                    var objInfo = new SpriterObject
+                    {
+                        X = element.X,
+                        Y = element.Y,
+                        Angle = (float)element.Angle,
+                        ScaleX = element.ScaleX,
+                        ScaleY = element.ScaleY,
+                        Alpha = element.a,
+                        AnimationId = animationID
+                    };
+
+                    AddFolderInfo(objInfo, element, folders);
+
+                    return (
+                        ID: new ElementID(element.Ref, (int)element.index),
+                        TimelineKey: new SpriterTimelineKey
+                        {
+                            Id = frameIndex,
+                            Time = frameIndex * glAnimation.Framerate,
+                            CurveType = SpriterCurveType.Instant,
+                            ObjectInfo = objInfo
+                        });
+                })
+            ).ToList();
+            return timelineKeysWithElementID;
+        }
+
+        private static void AddFolderInfo(SpriterObject objInfo, GLElement element,
+            Dictionary<int, SpriterFolder> folders)
+        {
+            if (!folders.TryGetValue(element.Ref, out var folder))
+                return;
+
+            objInfo.FolderId = folder.Id;
+            objInfo.FileId = element.Ndx;
+
+            if (element.Ndx < 0 || element.Ndx >= folder.Files.Length)
+                return;
+
+            var file = folder.Files[element.Ndx];
+            objInfo.PivotX = file.PivotX;
+            objInfo.PivotY = file.PivotY;
+        }
+
+        private static SpriterFile GLFrameToSpriterFile(SpriterFolder folder, GLFrame frame, string frameFormat)
+        {
+            return new SpriterFile
+            {
+                Id = frame.Index,
+                Name = $"{folder.Name}/{frame.Index}.{frameFormat}",
+                Type = SpriterFileType.Image,
+                PivotX = frame.PivotX,
+                PivotY = frame.PivotY,
+                Width = (int)Math.Round(frame.Width),
+                Height = (int)Math.Round(frame.Height)
+            };
+        }
+
+        private static string GetAnimationName(GLAnimation animation)
         {
             return animation.Name1 == animation.Name2 ? animation.Name1 : $"{animation.Name1}-{animation.Name2}";
-        }
-
-        private static List<TimelineKey> GetAllTimelineKeys(GLAnimation animation)
-        {
-            return animation.GLAnimFrames
-                .SelectMany
-                (
-                    (frame, frameIndex) => frame.GLElements.Select(element =>
-                        new TimelineKey(frameIndex, frameIndex * animation.Framerate, element))
-                )
-                .ToList();
-        }
-
-        private static Dictionary<ElementID, Timeline> ConstructTimelines(IEnumerable<TimelineKey> timelineKeys,
-            Dictionary<int, string> animationRefs)
-        {
-            var timelineID = 0;
-            return new Dictionary<ElementID, Timeline>
-            (
-                timelineKeys.GroupBy
-                (
-                    timelineKey => new ElementID
-                    (
-                        timelineKey.Element.Ref,
-                        (int)timelineKey.Element.index
-                    ),
-                    timelineKey => timelineKey,
-                    (elementID, keysOfTimeline) => KeyValuePair.Create
-                    (
-                        elementID,
-                        new Timeline
-                        (
-                            timelineID++,
-                            $"{animationRefs[elementID.Ref]}-{elementID.Index}",
-                            _folderRefs.IndexOf(elementID.Ref) == -1 ? "entity" : "sprite",
-                            keysOfTimeline.ToList()
-                        )
-                    )
-                )
-            );
-        }
-
-        private static IEnumerable<XElement> GetTimelineNodes(IEnumerable<Timeline> timelines)
-        {
-            return timelines.Select(timeline =>
-            {
-                return new XElement("timeline",
-                    new XAttribute("id", timeline.ID),
-                    new XAttribute("name", timeline.Name),
-                    new XAttribute("object_type", timeline.ObjectType),
-                    timeline.KeyFrames.Select(keyFrame =>
-                        new XElement("key",
-                            new XAttribute("id", keyFrame.FrameIndex),
-                            new XAttribute("time", keyFrame.Time),
-                            new XAttribute("curve_type", "instant"),
-                            GetSpatialInfo(keyFrame.Element)
-                        )
-                    )
-                );
-            });
-        }
-
-        private static XElement GetSpatialInfo(GLElement element)
-        {
-            var objectNode = new XElement("object",
-                new XAttribute("x", element.X),
-                new XAttribute("y", element.Y),
-                new XAttribute("angle", element.Angle),
-                new XAttribute("scale_x", element.ScaleX),
-                new XAttribute("scale_y", element.ScaleY),
-                new XAttribute("a", element.a),
-                new XAttribute("spin", element.Spin)
-            );
-
-            int folderIndex = _folderRefs.IndexOf(element.Ref);
-            if (folderIndex >= 0)
-            {
-                objectNode.Add
-                (
-                    new XAttribute("folder", folderIndex),
-                    new XAttribute("file", element.Ndx)
-                );
-            }
-            else
-            {
-                objectNode.Add
-                (
-                    new XAttribute("entity", 0),
-                    new XAttribute("t", 0), // TODO
-                    new XAttribute("animation", 5) // TODO
-                );
-            }
-
-            return objectNode;
-        }
-
-        private static IEnumerable<XElement> GetMainlineKeys(Dictionary<ElementID, Timeline> timelines)
-        {
-            return timelines
-                .Values
-                .SelectMany(timeline => timeline.KeyFrames.Select(timelineKey => (timeline.ID, timelineKey)))
-                .GroupBy
-                (
-                    tuple => tuple.timelineKey.FrameIndex,
-                    tuple => tuple,
-                    (frameIndex, keyTuples) =>
-                    {
-                        var keyTupleList = keyTuples.ToList();
-                        float time = keyTupleList.First().timelineKey.Time;
-                        return new XElement("key",
-                            new XAttribute("id", frameIndex),
-                            new XAttribute("time", time),
-                            GetObjectRefs(keyTupleList)
-                        );
-                    });
-        }
-
-        private static IEnumerable<XElement> GetObjectRefs(
-            List<(int timelineID, TimelineKey timelineKey)> timelineKeyTuples)
-        {
-            var zIndex = timelineKeyTuples.Count;
-            return timelineKeyTuples.Select((tuple, id) => new XElement("object_ref",
-                new XAttribute("id", id),
-                new XAttribute("timeline", tuple.timelineID),
-                new XAttribute("key", tuple.timelineKey.FrameIndex),
-                new XAttribute("z_index", zIndex--)
-            ));
         }
     }
 }
