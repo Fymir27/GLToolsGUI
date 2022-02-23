@@ -10,6 +10,9 @@ using SpriterDotNet;
 
 namespace GLToolsGUI.Utils
 {
+    /**
+     * based on https://github.com/instant-noodles/gltools
+     */
     public static class SCMLWriter
     {
         public static bool WriteGLAnimation(string path, GLBuild build, GLAnimationSet animationSet,
