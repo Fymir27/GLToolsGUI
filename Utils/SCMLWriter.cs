@@ -19,11 +19,13 @@ namespace GLToolsGUI.Utils
             string frameFormat = "png")
         {
             #region debug output
+
             Debug.WriteLine("Build Refs: \n" + string.Join("\n", build.Refs.Select((key, value) =>
                 $"{key}:{value}")));
 
             Debug.WriteLine("Animation Refs: \n" + string.Join("\n", animationSet.Refs.Select((key, value) =>
                 $"{key}:{value}")));
+
             #endregion
 
             if (build.Parts is null || build.Parts.Count == 0)
@@ -131,8 +133,8 @@ namespace GLToolsGUI.Utils
                     Id = nextTimelineID++,
                     Name = $"{refs[elementID.Ref]}-{elementID.Index}",
                     ObjectType = folders.ContainsKey(elementID.Ref)
-                        ? SpriterObjectType.Entity
-                        : SpriterObjectType.Sprite,
+                        ? SpriterObjectType.Sprite
+                        : SpriterObjectType.Entity,
                     Keys = keysOfTimeline.ToArray()
                 });
             }
@@ -163,10 +165,14 @@ namespace GLToolsGUI.Utils
                         ScaleX = element.ScaleX,
                         ScaleY = element.ScaleY,
                         Alpha = element.a,
-                        AnimationId = animationID
+                        AnimationId = 5 // TODO: using animationID here doesn't work, no idea why
                     };
 
-                    AddFolderInfo(objInfo, element, folders);
+                    if (folders.TryGetValue(element.Ref, out var folder))
+                    {
+                        objInfo.FolderId = folder.Id;
+                        objInfo.FileId = element.Ndx;
+                    }
 
                     return (
                         ID: new ElementID(element.Ref, (int)element.index),
@@ -175,28 +181,12 @@ namespace GLToolsGUI.Utils
                             Id = frameIndex,
                             Time = frameIndex * glAnimation.Framerate,
                             CurveType = SpriterCurveType.Instant,
-                            ObjectInfo = objInfo
+                            ObjectInfo = objInfo,
+                            Spin = (int)element.Spin,
                         });
                 })
             ).ToList();
             return timelineKeysWithElementID;
-        }
-
-        private static void AddFolderInfo(SpriterObject objInfo, GLElement element,
-            Dictionary<int, SpriterFolder> folders)
-        {
-            if (!folders.TryGetValue(element.Ref, out var folder))
-                return;
-
-            objInfo.FolderId = folder.Id;
-            objInfo.FileId = element.Ndx;
-
-            if (element.Ndx < 0 || element.Ndx >= folder.Files.Length)
-                return;
-
-            var file = folder.Files[element.Ndx];
-            objInfo.PivotX = file.PivotX;
-            objInfo.PivotY = file.PivotY;
         }
 
         private static SpriterFile GLFrameToSpriterFile(SpriterFolder folder, GLFrame frame, string frameFormat)

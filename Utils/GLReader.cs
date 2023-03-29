@@ -6,6 +6,7 @@ namespace GLToolsGUI.Utils
 {
     public class GLReader : BinaryReader
     {
+        public const int FileMagicLength = 4;
         public readonly string Path;
         
         public GLReader(FileStream input) : base(input)
@@ -23,6 +24,28 @@ namespace GLToolsGUI.Utils
             return ReadBytes((int)BaseStream.Length - (int)BaseStream.Position);
         }
 
+        /**
+         * Peeks next 4 characters and returns them as a string
+         */
+        public string PeekFileMagic()
+        {
+            long position = BaseStream.Position;
+            Reset();
+            string magic = ReadString(FileMagicLength);
+            BaseStream.Position = position;
+            return magic;
+        }
+
+        public bool HasFileMagic(string expectedMagic)
+        {
+            if (expectedMagic.Length != FileMagicLength)
+            {
+                throw new ArgumentException($"File magic is expected to be {FileMagicLength} characters long!");
+            }
+
+            return expectedMagic.ToUpper() == PeekFileMagic();
+        }
+        
         public override string ReadString()
         {
             return ReadString(ReadInt32());

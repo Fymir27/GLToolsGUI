@@ -23,7 +23,7 @@ namespace GLToolsGUI.Model
         public Dictionary<int, string> Refs;
         private const string FileMagicBuild = "BILD";
         private const int VersionRequired = 10;
-        
+
         /* Calculated/Loaded Properties */
         public GLTexture RootTexture;
         public Dictionary<string, Dictionary<string, MagickImage>> Parts;
@@ -36,6 +36,7 @@ namespace GLToolsGUI.Model
             {
                 throw new FormatException("Invalid file format");
             }
+
             SymbolCount = reader.ReadInt32();
             FrameCount = reader.ReadInt32();
             Root = reader.ReadString();
@@ -66,16 +67,17 @@ namespace GLToolsGUI.Model
             if (!loadRootTexture)
                 return;
 
-            string directory = Path.GetDirectoryName(reader.Path) ?? throw new Exception("Invalid Path: " + reader.Path);
-            
+            string directory = Path.GetDirectoryName(reader.Path) ??
+                               throw new Exception("Invalid Path: " + reader.Path);
+
             // TODO: figure out a better way of loading texture instead of hardcoding
             string rootTexturePath = GLReader.RequireFile(directory, "atlas0.tex");
-            
+
             RootTexture = GLTexture.FromKTexFile(rootTexturePath);
 
             if (disassembleIntoParts)
             {
-                DisassembleRootTexture();   
+                DisassembleRootTexture();
             }
         }
 
@@ -90,15 +92,15 @@ namespace GLToolsGUI.Model
             foreach (var symbol in Symbols)
             {
                 var frames = new Dictionary<string, MagickImage>();
-                
+
                 string symbolName = Refs[symbol.Ref1];
                 string symbolDirectoryPath = Path.Combine(directory, symbolName);
-                
+
                 if (!Directory.Exists(symbolDirectoryPath))
                 {
                     throw new Exception($"Symbol directory not found: {symbolDirectoryPath}");
                 }
-                
+
                 foreach (var frame in symbol.Frames)
                 {
                     string frameFileName = frame.Index + ".png";
@@ -111,7 +113,7 @@ namespace GLToolsGUI.Model
                     var frameImage = new MagickImage(frameFilePath);
                     frames.Add(frame.Index.ToString(), frameImage);
                 }
-                
+
                 newParts.Add(symbolName, frames);
             }
 
@@ -131,14 +133,14 @@ namespace GLToolsGUI.Model
             {
                 writer.Write(textureName);
             }
-            
+
             writer.Write(Flag);
 
             foreach (var symbol in Symbols)
             {
                 symbol.Write(writer);
             }
-            
+
             writer.Write(RefCount);
 
             foreach ((int hash, string name) in Refs)
@@ -154,17 +156,18 @@ namespace GLToolsGUI.Model
             {
                 throw new ArgumentException("Root Texture cannot be updated if original wasn't loaded first!");
             }
-            
+
             if (assembleFromParts)
             {
                 UpdateRootTextureFromParts();
             }
-            
+
             // TODO: figure out a better way of saving texture instead of hardcoding filename
-            string directory = Path.GetDirectoryName(writer.Path) ?? throw new Exception("Invalid Path: " + writer.Path);
+            string directory = Path.GetDirectoryName(writer.Path) ??
+                               throw new Exception("Invalid Path: " + writer.Path);
             RootTexture.Write(Path.Combine(directory, "atlas0.tex"));
         }
-        
+
         public void DisassembleRootTexture()
         {
             var image = RootTexture.Image;
@@ -180,13 +183,15 @@ namespace GLToolsGUI.Model
                     frameImage.Crop(frameGeometry);
                     frames.Add(frame.Index.ToString(), frameImage);
                 }
+
                 string symbolName = Refs[symbol.Ref1];
                 Parts.TryAdd(symbolName, frames);
                 string symbolName2 = Refs[symbol.Ref2];
                 if (symbolName2.Length > 0)
                 {
-                    Parts.TryAdd(symbolName2, frames);                        
+                    Parts.TryAdd(symbolName2, frames);
                 }
+
                 Debug.WriteLine($"Ref1: {symbolName}, Ref2: {symbolName2}");
             }
         }
