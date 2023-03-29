@@ -171,7 +171,20 @@ namespace GLToolsGUI.Utils
                     if (folders.TryGetValue(element.Ref, out var folder))
                     {
                         objInfo.FolderId = folder.Id;
-                        objInfo.FileId = element.Ndx;
+                        SpriterFile file = null;
+                        for (int i = 0; i < folder.Files.Length; i++)
+                        {
+                            if (folder.Files[i].Id > element.Ndx)
+                                break;
+                            file = folder.Files[i];
+                        }
+
+                        if (file is not null)
+                        {
+                            objInfo.FileId = file.Id;
+                            objInfo.PivotX = file.PivotX;
+                            objInfo.PivotY = file.PivotY;
+                        }
                     }
 
                     return (
